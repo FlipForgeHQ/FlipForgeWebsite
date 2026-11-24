@@ -1,0 +1,962 @@
+{
+  "status": 200,
+  "body": {
+    "data": {
+      "configured": true,
+      "outcomeTimeline": {
+        "asOf": "2026-11-24T16:37:13.219392922Z",
+        "transactionAuthority": false,
+        "originalDecision": {
+          "valuesWithheldLabel": null,
+          "legacyBaseline": false,
+          "decidedOn": "2026-11-14",
+          "askCents": 24000,
+          "recommendation": "VERIFY",
+          "why": [
+            "One independent sale. Supported Value $261.00."
+          ],
+          "baselineSupported": true,
+          "evaluatedAt": "2026-11-14T15:56:59.096988461Z",
+          "reasonExplanation": "FlipForge needs more confirmation (identity, listing or sales evidence) before the price can be judged. VERIFY sets no buying limit.",
+          "baselineSupportedValueCents": 26100,
+          "baselineExplanation": "The original decision's supported value is the baseline for later checkpoints.",
+          "immutable": true,
+          "decidedOnText": "Nov 14, 2026",
+          "receiptSha256": "b48d80bcf5298867ecf82dab070918b4fce56ea1c5eb27371a8eb65fa65dfefd",
+          "laterReevaluationCount": 0,
+          "requestId": "req-EBAY-p5-independent-single",
+          "evidenceSupport": {
+            "acceptedExactSales": 1,
+            "evidenceQuality": "LIMITED",
+            "dataProviderEvidenceUsed": false,
+            "supportRating": "LIMITED",
+            "confidence": 40,
+            "risk": 65,
+            "individualSalePricesShown": false
+          },
+          "receiptPresent": true,
+          "latestReevaluationRecommendation": null,
+          "reasonCode": "VERIFICATION_REQUIRED",
+          "valuesWithheld": null,
+          "snapshotSha256": "f1bee40168c30b217e6345861dacf2415a4e6ccf33f0e41cff1481f139fe16c7"
+        },
+        "available": true,
+        "answers": {
+          "whatEvidenceAppeared": "Day 7: Window Closed. Day 14: Awaiting Checkpoint. Day 30: Awaiting Checkpoint.",
+          "whatCanBeConcluded": "No reliable market evidence has been recorded so far, so no outcome can be stated yet. Still to come: Day 14 (due Nov 28, 2026), Day 30 (due Dec 14, 2026).",
+          "whatWasRecommended": "FlipForge recommended VERIFY on Nov 14, 2026. FlipForge needs more confirmation (identity, listing or sales evidence) before the price can be judged. VERIFY sets no buying limit.",
+          "isVerificationNeeded": "Yes. Check the market yourself before relying on this decision: the original verdict was VERIFY, no checkpoint has an independently confirmed price.",
+          "whatChangedSince": "Day 7: no independently confirmed price (window closed); derived market estimate unavailable. Day 14: no independently confirmed price (awaiting checkpoint); not yet available. Day 30: no independently confirmed price (awaiting checkpoint); not yet available.",
+          "whyRecommended": "One independent sale. Supported Value $261.00.",
+          "whatEvidenceSupported": "1 qualified exact sale, evidence quality LIMITED, confidence 40, risk 65. Individual sale prices are not shown."
+        },
+        "customerReportsOutsideCheckpoints": [],
+        "historicalRescoring": false,
+        "accountabilitySummary": {
+          "measured": 0,
+          "total": 3,
+          "due": 1,
+          "statement": "0 of 1 due checkpoint has been measured with independently confirmed sales. FlipForge does not treat that as a result either way.",
+          "accuracyClaim": false,
+          "version": "checkpoint-accountability-v1",
+          "byStatus": {
+            "NOT_YET_DUE": 2,
+            "PROVIDER_UNAVAILABLE": 0,
+            "IDENTITY_INELIGIBLE": 0,
+            "NO_NEW_SALES": 0,
+            "NO_NEW_VERIFIED_EVIDENCE": 0,
+            "MEASURED": 0,
+            "MISSED": 1,
+            "WINDOW_OPEN": 0,
+            "COMPLETED_UNMEASURABLE": 0
+          }
+        },
+        "accountabilityRecord": {
+          "transactionAuthority": false,
+          "kind": "decision-accountability-record",
+          "saleLevelDataIncluded": false,
+          "accuracyClaim": false,
+          "savedDecisionRescored": false,
+          "whyThisDecision": {
+            "savedReasons": [
+              "One independent sale. Supported Value $261.00."
+            ],
+            "rulesLabel": "Decided under earlier rules",
+            "rulesDisclosure": "Decided on Nov 14, 2026 under earlier rules. This saved decision, its Max Buy and its receipt are kept exactly as they were made. Today's rules can give a different result at the same price; any analysis under today's rules is shown separately.",
+            "reasonCode": "VERIFICATION_REQUIRED",
+            "explanation": "FlipForge needs more confirmation (identity, listing or sales evidence) before the price can be judged. VERIFY sets no buying limit.",
+            "consistency": {
+              "note": "The saved explanation matches the saved verdict and its evidence basis.",
+              "legacyRecord": false,
+              "findings": [],
+              "savedDecisionRescored": false,
+              "consistent": true
+            }
+          },
+          "version": "decision-accountability-record-v1",
+          "whatWasExcludedOrUncertain": {
+            "valuesWithheldLabel": null,
+            "confidenceMeaning": "Confidence is a rule-based 0-100 score of evidence strength. It is not a probability and has not been calibrated against independent outcomes.",
+            "evidenceQuality": "LIMITED",
+            "confidence": 40,
+            "excludedEvidence": {
+              "qualifiedEvidenceNotUsed": {},
+              "dataProviderRowsNotQualified": null,
+              "countsOnly": true,
+              "recorded": true,
+              "explanation": "Evidence FlipForge looked at but did not count, by reason. Only counts are shown; individual sales are not."
+            },
+            "risk": 65,
+            "verificationExplanation": "Check the market yourself before relying on this decision: the original verdict was VERIFY, no checkpoint has an independently confirmed price.",
+            "missingRequirement": null,
+            "verificationNeeded": true
+          },
+          "whatLaterEvidenceRevealed": {
+            "summary": {
+              "measured": 0,
+              "total": 3,
+              "due": 1,
+              "statement": "0 of 1 due checkpoint has been measured with independently confirmed sales. FlipForge does not treat that as a result either way.",
+              "accuracyClaim": false,
+              "version": "checkpoint-accountability-v1",
+              "byStatus": {
+                "NOT_YET_DUE": 2,
+                "PROVIDER_UNAVAILABLE": 0,
+                "IDENTITY_INELIGIBLE": 0,
+                "NO_NEW_SALES": 0,
+                "NO_NEW_VERIFIED_EVIDENCE": 0,
+                "MEASURED": 0,
+                "MISSED": 1,
+                "WINDOW_OPEN": 0,
+                "COMPLETED_UNMEASURABLE": 0
+              }
+            },
+            "limitation": "Without independently confirmed sales after the decision, FlipForge cannot say what the market did, so no outcome is reported for this decision.",
+            "customerReportsAreUnverified": true,
+            "derivedEstimateIsRealizedProfit": false,
+            "statement": "0 of 1 due checkpoint has been measured with independently confirmed sales. FlipForge does not treat that as a result either way. The original VERIFY recommendation is kept exactly as it was made.",
+            "checkpoints": [
+              {
+                "measured": false,
+                "horizonDays": 7,
+                "label": "Day 7",
+                "explanation": "Day 7 was not measured: its window closed on Nov 23, 2026 without a recorded measurement. A later measurement is never recorded as Day 7.",
+                "customerReportCount": 0,
+                "statusLabel": "Missed: nothing was recorded in the window",
+                "status": "MISSED"
+              },
+              {
+                "measured": false,
+                "horizonDays": 14,
+                "label": "Day 14",
+                "explanation": "Day 14 is not due yet (due Nov 28, 2026).",
+                "customerReportCount": 0,
+                "statusLabel": "Not yet due",
+                "status": "NOT_YET_DUE"
+              },
+              {
+                "measured": false,
+                "horizonDays": 30,
+                "label": "Day 30",
+                "explanation": "Day 30 is not due yet (due Dec 14, 2026).",
+                "customerReportCount": 0,
+                "statusLabel": "Not yet due",
+                "status": "NOT_YET_DUE"
+              }
+            ],
+            "originalRecommendationRetained": true,
+            "marketMovementIsVerdictCorrectness": false,
+            "originalRecommendation": "VERIFY"
+          },
+          "whatFlipForgeKnew": {
+            "ruleVersions": {
+              "evaluationEngine": "NOT_RECORDED",
+              "decidedUnderEarlierRules": true,
+              "currentDecisionRules": "pass-requires-disqualifier-v1+withheld-value-requires-verify-v1+thin-evidence-pass-requires-verify-v1+risk-independent-of-evidence-v1",
+              "snapshotEngineVersion": "phase5-synthetic",
+              "decisionRules": "PRE_PASS_REQUIRES_DISQUALIFIER",
+              "profitabilityPolicy": "BEFORE_PROFITABILITY_RULES",
+              "evidencePolicy": "PROVIDER_MEMORY_ONLY_V1"
+            },
+            "decidedOnText": "Nov 14, 2026",
+            "cardIdentity": "2021 Bowman Phase5 Independent #4 PSA 10",
+            "evidence": {
+              "sourceBasis": "INDEPENDENT_OR_OPERATOR_ENTERED",
+              "qualifiedExactSales": 1,
+              "heldForReview": 0,
+              "freshnessNote": "Sale dates are not kept with a saved decision, so how recent its sales were is not recorded.",
+              "rejected": 0,
+              "individualSalesShown": false,
+              "evidenceQuality": "LIMITED",
+              "supportRating": "LIMITED",
+              "accepted": 1,
+              "freshness": "NOT_RECORDED"
+            },
+            "identity": {
+              "canonicalCardKey": null,
+              "listingVerificationOutcome": "NOT_RECORDED",
+              "verificationChecklistCodes": [],
+              "exactIdentityConfirmed": true,
+              "listingVerificationStatus": "NOT_RECORDED",
+              "identityTakesPrecedenceOverPrice": true,
+              "basis": "CONFIRMED",
+              "explanation": "The exact card (year, set, player, card number, parallel and grade) was confirmed before any price was considered."
+            },
+            "askCents": 24000,
+            "decidedAt": "2026-11-14T15:56:59.096988461Z",
+            "recommendation": "VERIFY",
+            "value": {
+              "maximumBuyPriceCents": null,
+              "label": "No buying limit",
+              "explanation": "A VERIFY decision sets no Max Buy.",
+              "supportedValueCents": 26100,
+              "status": "SHOWN_VERIFY_NO_LIMIT"
+            }
+          },
+          "immutable": true,
+          "recordStatus": "CURRENT_EVIDENCE_RULES",
+          "historyRewritten": false,
+          "receiptSha256": "b48d80bcf5298867ecf82dab070918b4fce56ea1c5eb27371a8eb65fa65dfefd",
+          "notRecorded": [
+            "LISTING_VERIFICATION",
+            "ENGINE_COMPONENT_VERSIONS",
+            "SALE_FRESHNESS"
+          ],
+          "requestId": "req-EBAY-p5-independent-single",
+          "snapshotSha256": "f1bee40168c30b217e6345861dacf2415a4e6ccf33f0e41cff1481f139fe16c7"
+        },
+        "conclusion": {
+          "canConclude": false,
+          "code": "PENDING",
+          "statement": "No reliable market evidence has been recorded so far, so no outcome can be stated yet. Still to come: Day 14 (due Nov 28, 2026), Day 30 (due Dec 14, 2026)."
+        },
+        "opportunityId": "EBAY-p5-independent-single",
+        "providerRequestMade": false,
+        "derivedEstimateIsRealizedReturn": false,
+        "syntheticPrices": false,
+        "verification": {
+          "reasons": [
+            "VERIFY_VERDICT",
+            "NO_INDEPENDENT_CONFIRMATION"
+          ],
+          "needed": true,
+          "explanation": "Check the market yourself before relying on this decision: the original verdict was VERIFY, no checkpoint has an independently confirmed price."
+        },
+        "historicalBackfill": false,
+        "summary": {
+          "priceObservedCheckpoints": 0,
+          "AWAITING_CHECKPOINT": 2,
+          "WINDOW_CLOSED": 1,
+          "customerReportCount": 0
+        },
+        "customerReportsVerified": false,
+        "reconstructionsMergedWithLive": false,
+        "kind": "outcome-checkpoint-timeline",
+        "movementLabels": {
+          "UNCHANGED": "Derived market estimate unchanged (within 5%)",
+          "NOT_YET_AVAILABLE": "Not yet available",
+          "UNAVAILABLE": "Derived market estimate unavailable",
+          "INCREASED": "Derived market estimate increased",
+          "DECREASED": "Derived market estimate decreased"
+        },
+        "timeZone": "America/New_York",
+        "checkpoints": [
+          {
+            "dueOn": "2026-11-21",
+            "evidence": {
+              "recordedValueWithheld": false,
+              "recordedAt": null,
+              "reliability": "NONE",
+              "reliabilityLabel": "No reliable pricing evidence",
+              "acceptedSalesAtCheckpoint": null,
+              "observedValueCents": null
+            },
+            "comparisonToBaseline": {
+              "changePercent": null,
+              "changeCents": null,
+              "explanation": "No comparison: this checkpoint has no reliable price.",
+              "comparable": false,
+              "direction": null
+            },
+            "explanation": "The Day 7 window closed on Nov 23, 2026 with no reliable pricing evidence recorded. It stays closed and is never filled in later from estimates.",
+            "whatChanged": "Day 7: no independently confirmed price (window closed); derived market estimate unavailable.",
+            "evidenceConflict": {
+              "present": false
+            },
+            "state": "WINDOW_CLOSED",
+            "reasonCode": "NO_RELIABLE_EVIDENCE_RECORDED_IN_WINDOW",
+            "windowClosesOnText": "Nov 23, 2026",
+            "verificationNeeded": true,
+            "accountability": {
+              "measured": false,
+              "asOf": null,
+              "customerReportsCountedAsMeasurement": false,
+              "qualifiedSalesAtCheckpoint": null,
+              "backfilled": false,
+              "recorded": false,
+              "explanation": "Day 7 was not measured: its window closed on Nov 23, 2026 without a recorded measurement. A later measurement is never recorded as Day 7.",
+              "version": "checkpoint-accountability-v1",
+              "statusLabel": "Missed: nothing was recorded in the window",
+              "derivedEstimateRecorded": false,
+              "sourceBasis": "NONE",
+              "customerReportCount": 0,
+              "status": "MISSED"
+            },
+            "historicalReconstruction": null,
+            "streams": {
+              "derivedMarketEstimate": {
+                "acceptedSalesAtCheckpoint": null,
+                "derivedOnly": true,
+                "label": "Derived market estimate",
+                "realizedReturn": false,
+                "basis": null,
+                "explanation": "No derived market estimate was recorded for Day 7.",
+                "movementLabel": "Derived market estimate unavailable",
+                "stream": "A",
+                "carriedForward": null,
+                "estimateRecorded": false,
+                "reasonCode": "NO_DERIVED_ESTIMATE_RECORDED",
+                "valueShown": false,
+                "movement": "UNAVAILABLE"
+              },
+              "customerReported": {
+                "reports": [],
+                "stream": "C",
+                "verified": false,
+                "reportCount": 0,
+                "countedAsMarketPrice": false,
+                "label": "Customer-Reported — Unverified"
+              },
+              "independentlyConfirmed": {
+                "stream": "B",
+                "priceObserved": false,
+                "acceptedSalesAtCheckpoint": null,
+                "label": "Independently confirmed transactions",
+                "observedValueCents": null
+              }
+            },
+            "label": "Day 7",
+            "windowClosesOn": "2026-11-23",
+            "underlyingState": "WINDOW_CLOSED",
+            "dueAt": "2026-11-21T15:56:59.096988461Z",
+            "horizonDays": 7,
+            "windowState": "CLOSED",
+            "comparisonToPrior": {
+              "changePercent": null,
+              "changeCents": null,
+              "explanation": "Day 7 is the first checkpoint.",
+              "comparable": false,
+              "comparedWithHorizonDays": null,
+              "direction": null
+            },
+            "windowClosesAt": "2026-11-23T15:56:59.096988461Z",
+            "stateLabel": "Window Closed",
+            "customerReports": [],
+            "decisionAttribution": {
+              "d0DecisionRules": "PRE_PASS_REQUIRES_DISQUALIFIER",
+              "decisionChanged": null,
+              "decisionChangeCause": null,
+              "checkpointDecisionRules": "NOT_RECORDED_MAY_DIFFER_FROM_D0",
+              "countsAsMarketMovement": false,
+              "verdictMayReflectDecisionRules": false
+            },
+            "dueOnText": "Nov 21, 2026"
+          },
+          {
+            "dueOn": "2026-11-28",
+            "evidence": {
+              "recordedValueWithheld": false,
+              "recordedAt": null,
+              "reliability": "NONE",
+              "reliabilityLabel": "No reliable pricing evidence",
+              "acceptedSalesAtCheckpoint": null,
+              "observedValueCents": null
+            },
+            "comparisonToBaseline": {
+              "changePercent": null,
+              "changeCents": null,
+              "explanation": "No comparison: this checkpoint has no reliable price.",
+              "comparable": false,
+              "direction": null
+            },
+            "explanation": "Day 14 is due on Nov 28, 2026.",
+            "whatChanged": "Day 14: no independently confirmed price (awaiting checkpoint); not yet available.",
+            "evidenceConflict": {
+              "present": false
+            },
+            "state": "AWAITING_CHECKPOINT",
+            "reasonCode": "NOT_YET_DUE",
+            "windowClosesOnText": "Dec 1, 2026",
+            "verificationNeeded": false,
+            "accountability": {
+              "measured": false,
+              "asOf": null,
+              "customerReportsCountedAsMeasurement": false,
+              "qualifiedSalesAtCheckpoint": null,
+              "backfilled": false,
+              "recorded": false,
+              "explanation": "Day 14 is not due yet (due Nov 28, 2026).",
+              "version": "checkpoint-accountability-v1",
+              "statusLabel": "Not yet due",
+              "derivedEstimateRecorded": false,
+              "sourceBasis": "NONE",
+              "customerReportCount": 0,
+              "status": "NOT_YET_DUE"
+            },
+            "historicalReconstruction": null,
+            "streams": {
+              "derivedMarketEstimate": {
+                "acceptedSalesAtCheckpoint": null,
+                "derivedOnly": true,
+                "label": "Derived market estimate",
+                "realizedReturn": false,
+                "basis": null,
+                "explanation": "Day 14 is not due yet.",
+                "movementLabel": "Not yet available",
+                "stream": "A",
+                "carriedForward": null,
+                "estimateRecorded": false,
+                "reasonCode": "NOT_YET_DUE",
+                "valueShown": false,
+                "movement": "NOT_YET_AVAILABLE"
+              },
+              "customerReported": {
+                "reports": [],
+                "stream": "C",
+                "verified": false,
+                "reportCount": 0,
+                "countedAsMarketPrice": false,
+                "label": "Customer-Reported — Unverified"
+              },
+              "independentlyConfirmed": {
+                "stream": "B",
+                "priceObserved": false,
+                "acceptedSalesAtCheckpoint": null,
+                "label": "Independently confirmed transactions",
+                "observedValueCents": null
+              }
+            },
+            "label": "Day 14",
+            "windowClosesOn": "2026-12-01",
+            "underlyingState": "AWAITING_CHECKPOINT",
+            "dueAt": "2026-11-28T15:56:59.096988461Z",
+            "horizonDays": 14,
+            "windowState": "NOT_YET_DUE",
+            "comparisonToPrior": {
+              "changePercent": null,
+              "changeCents": null,
+              "explanation": "No comparison: this checkpoint has no reliable price.",
+              "comparable": false,
+              "comparedWithHorizonDays": null,
+              "direction": null
+            },
+            "windowClosesAt": "2026-12-01T15:56:59.096988461Z",
+            "stateLabel": "Awaiting Checkpoint",
+            "customerReports": [],
+            "decisionAttribution": {
+              "d0DecisionRules": "PRE_PASS_REQUIRES_DISQUALIFIER",
+              "decisionChanged": null,
+              "decisionChangeCause": null,
+              "checkpointDecisionRules": "NOT_RECORDED_MAY_DIFFER_FROM_D0",
+              "countsAsMarketMovement": false,
+              "verdictMayReflectDecisionRules": false
+            },
+            "dueOnText": "Nov 28, 2026"
+          },
+          {
+            "dueOn": "2026-12-14",
+            "evidence": {
+              "recordedValueWithheld": false,
+              "recordedAt": null,
+              "reliability": "NONE",
+              "reliabilityLabel": "No reliable pricing evidence",
+              "acceptedSalesAtCheckpoint": null,
+              "observedValueCents": null
+            },
+            "comparisonToBaseline": {
+              "changePercent": null,
+              "changeCents": null,
+              "explanation": "No comparison: this checkpoint has no reliable price.",
+              "comparable": false,
+              "direction": null
+            },
+            "explanation": "Day 30 is due on Dec 14, 2026.",
+            "whatChanged": "Day 30: no independently confirmed price (awaiting checkpoint); not yet available.",
+            "evidenceConflict": {
+              "present": false
+            },
+            "state": "AWAITING_CHECKPOINT",
+            "reasonCode": "NOT_YET_DUE",
+            "windowClosesOnText": "Dec 19, 2026",
+            "verificationNeeded": false,
+            "accountability": {
+              "measured": false,
+              "asOf": null,
+              "customerReportsCountedAsMeasurement": false,
+              "qualifiedSalesAtCheckpoint": null,
+              "backfilled": false,
+              "recorded": false,
+              "explanation": "Day 30 is not due yet (due Dec 14, 2026).",
+              "version": "checkpoint-accountability-v1",
+              "statusLabel": "Not yet due",
+              "derivedEstimateRecorded": false,
+              "sourceBasis": "NONE",
+              "customerReportCount": 0,
+              "status": "NOT_YET_DUE"
+            },
+            "historicalReconstruction": null,
+            "streams": {
+              "derivedMarketEstimate": {
+                "acceptedSalesAtCheckpoint": null,
+                "derivedOnly": true,
+                "label": "Derived market estimate",
+                "realizedReturn": false,
+                "basis": null,
+                "explanation": "Day 30 is not due yet.",
+                "movementLabel": "Not yet available",
+                "stream": "A",
+                "carriedForward": null,
+                "estimateRecorded": false,
+                "reasonCode": "NOT_YET_DUE",
+                "valueShown": false,
+                "movement": "NOT_YET_AVAILABLE"
+              },
+              "customerReported": {
+                "reports": [],
+                "stream": "C",
+                "verified": false,
+                "reportCount": 0,
+                "countedAsMarketPrice": false,
+                "label": "Customer-Reported — Unverified"
+              },
+              "independentlyConfirmed": {
+                "stream": "B",
+                "priceObserved": false,
+                "acceptedSalesAtCheckpoint": null,
+                "label": "Independently confirmed transactions",
+                "observedValueCents": null
+              }
+            },
+            "label": "Day 30",
+            "windowClosesOn": "2026-12-19",
+            "underlyingState": "AWAITING_CHECKPOINT",
+            "dueAt": "2026-12-14T15:56:59.096988461Z",
+            "horizonDays": 30,
+            "windowState": "NOT_YET_DUE",
+            "comparisonToPrior": {
+              "changePercent": null,
+              "changeCents": null,
+              "explanation": "No comparison: this checkpoint has no reliable price.",
+              "comparable": false,
+              "comparedWithHorizonDays": null,
+              "direction": null
+            },
+            "windowClosesAt": "2026-12-19T15:56:59.096988461Z",
+            "stateLabel": "Awaiting Checkpoint",
+            "customerReports": [],
+            "decisionAttribution": {
+              "d0DecisionRules": "PRE_PASS_REQUIRES_DISQUALIFIER",
+              "decisionChanged": null,
+              "decisionChangeCause": null,
+              "checkpointDecisionRules": "NOT_RECORDED_MAY_DIFFER_FROM_D0",
+              "countsAsMarketMovement": false,
+              "verdictMayReflectDecisionRules": false
+            },
+            "dueOnText": "Dec 14, 2026"
+          }
+        ],
+        "historicalReconstructionDisplay": "OFF_PENDING_COMPLIANCE_APPROVAL",
+        "readOnly": true,
+        "version": "outcome-checkpoint-timeline-v2",
+        "customerAccuracyClaimAuthorized": false,
+        "labels": {
+          "HISTORICAL_RECONSTRUCTION": "Historical Reconstruction",
+          "AWAITING_CHECKPOINT": "Awaiting Checkpoint",
+          "NO_NEW_VERIFIED_EVIDENCE": "No new verified evidence",
+          "NO_NEW_SALES": "No New Sales",
+          "WINDOW_CLOSED": "Window Closed",
+          "CUSTOMER_REPORTED_UNVERIFIED": "Customer-Reported — Unverified",
+          "PRICE_OBSERVED": "Price Observed",
+          "NO_RELIABLE_EVIDENCE": "No Reliable Evidence"
+        },
+        "streamLabels": {
+          "A": "Derived market estimate",
+          "B": "Independently confirmed transactions",
+          "C": "Customer-Reported — Unverified"
+        },
+        "individualSalePricesShown": false,
+        "unverifiedObservationValuesShown": false,
+        "askingPricesUsedAsSales": false,
+        "status": "AVAILABLE"
+      },
+      "referenceValueVersion": "v15.05",
+      "sourceOfTruth": "SQLite",
+      "transactionAuthority": false,
+      "kind": "lifecycle-detail",
+      "decisionTimeline": {
+        "selfTrainingAuthority": false,
+        "transactionAuthority": false,
+        "kind": "decision-timeline",
+        "preV13Reconstruction": false,
+        "available": true,
+        "profitabilityChangesUseSavedSnapshotsOnly": true,
+        "legacyProvenanceVersion": "legacy-provenance-v1",
+        "historicalSnapshotsImmutable": true,
+        "historicalRescoring": false,
+        "opportunityId": "EBAY-p5-independent-single",
+        "entries": [
+          {
+            "acceptedEvidenceCount": 1,
+            "workflowStatus": "REVIEW",
+            "conservativeNetProfitCents": null,
+            "changes": [],
+            "liquidity": null,
+            "maximumBuyRecordedInSnapshot": false,
+            "whatChanged": [],
+            "stressNetProfitCents": null,
+            "passRequiresDisqualifierApplied": false,
+            "requestId": "req-EBAY-p5-independent-single",
+            "expectedNetProfitCents": null,
+            "maximumBuyPriceCents": null,
+            "rejectedEvidenceCount": null,
+            "decisionRulesVersion": "PRE_PASS_REQUIRES_DISQUALIFIER",
+            "exactIdentityEligible": true,
+            "allInAskCents": 24000,
+            "decisionContractAvailable": true,
+            "cardIdentity": "2021 Bowman Phase5 Independent #4 PSA 10",
+            "profitabilityGateStatus": "UNAVAILABLE",
+            "marketplace": "EBAY",
+            "decision": "VERIFY",
+            "profitabilitySnapshotPresent": false,
+            "profitabilityAvailable": false,
+            "evidenceQuality": "UNAVAILABLE",
+            "confidence": 40,
+            "receiptVersion": "phase5-synthetic",
+            "changedFromPrevious": false,
+            "legacyProvenanceVersion": "legacy-provenance-v1",
+            "evaluatedAt": "2026-11-14T15:56:59.096988461Z",
+            "reviewEvidenceCount": null,
+            "immutable": true,
+            "decisionContractVersion": "UNKNOWN",
+            "profitabilityPolicyVersion": "PRE_V1_4",
+            "evidenceProvenanceStatus": "CURRENT_EVIDENCE_RULES",
+            "legacyNotice": null,
+            "risk": 65,
+            "supportedValueCents": 26100,
+            "maximumBuyApplies": false,
+            "whatWouldChange": []
+          }
+        ],
+        "recommendationAuthority": "SMART_OPPORTUNITY_BASE_PLUS_V1_4_PROFITABILITY_BUY_GATE",
+        "evidenceProvenanceStatus": "CURRENT_EVIDENCE_RULES",
+        "changedEntryCount": 0,
+        "snapshotCount": 1,
+        "legacyNotice": null,
+        "preV14ProfitabilityReconstruction": false,
+        "timelineVersion": "v1.5.1",
+        "gradingAuthority": "EXISTING_PSA_INTELLIGENCE"
+      },
+      "decisionTimelineVersion": "v1.5.1",
+      "tenantIsolation": {
+        "enforced": true,
+        "projectionVersion": "v15.07",
+        "tenantAuditKey": "48b988b0c1e3",
+        "defaultAccess": "DENY",
+        "visibleOpportunityCount": 1,
+        "accessRegistryVersion": "v14.95"
+      },
+      "tenantScoped": true,
+      "collectionSignalFeedVersion": "v1.0",
+      "legacyProvenanceVersion": "legacy-provenance-v1",
+      "history": [],
+      "decisionChangeIntelligenceVersion": "v1.5.0",
+      "repositoryVersion": "v14.98",
+      "lifecycle": {
+        "createdAt": null,
+        "opportunityId": "EBAY-p5-independent-single",
+        "reviewAt": null,
+        "dispositionProceedsCents": null,
+        "acquisitionCostCents": null,
+        "outcomeStatus": "NONE",
+        "disposedAt": null,
+        "acquiredAt": null,
+        "trackingStatus": "WATCHING",
+        "alertEnabled": false,
+        "version": 0,
+        "updatedAt": null
+      },
+      "opportunityId": "EBAY-p5-independent-single",
+      "evidenceProvenanceStatus": "CURRENT_EVIDENCE_RULES",
+      "decisionChangeIntelligence": {
+        "transactionAuthority": false,
+        "outcomeReconciliation": {
+          "t0AllInAskCents": 24000,
+          "historicalBackfill": false,
+          "t0EvaluatedAt": "2026-11-14T15:56:59.096988461Z",
+          "checkpoints": [
+            {
+              "measurementState": "MISSING_OBSERVATION",
+              "evidenceQualityFromV13Contract": true,
+              "supportedValueChangePercent": null,
+              "t0EvaluatedAt": "2026-11-14T15:56:59.096988461Z",
+              "available": false,
+              "recommendation": "VERIFY",
+              "historicalRescoring": false,
+              "opportunityId": "EBAY-p5-independent-single",
+              "requestId": "req-EBAY-p5-independent-single",
+              "decisionOutcome": "UNAVAILABLE",
+              "decisionAlignment": "UNAVAILABLE",
+              "historicalBackfill": false,
+              "cardIdentity": "2021 Bowman Phase5 Independent #4 PSA 10",
+              "observedChangeSignals": [],
+              "evidenceQuality": "LIMITED",
+              "observedAt": null,
+              "confidence": 40,
+              "verifyResolution": "NO_LATER_DECISION",
+              "marketState": "UNAVAILABLE",
+              "baselineSupportedValueCents": 26100,
+              "baselineAcceptedEvidenceCount": 1,
+              "observationStatus": null,
+              "horizonDays": 7,
+              "immutableBaseline": true,
+              "risk": 65,
+              "observedSupportedValueCents": null,
+              "evidenceQualityScore": null
+            },
+            {
+              "measurementState": "MISSING_OBSERVATION",
+              "evidenceQualityFromV13Contract": true,
+              "supportedValueChangePercent": null,
+              "t0EvaluatedAt": "2026-11-14T15:56:59.096988461Z",
+              "available": false,
+              "recommendation": "VERIFY",
+              "historicalRescoring": false,
+              "opportunityId": "EBAY-p5-independent-single",
+              "requestId": "req-EBAY-p5-independent-single",
+              "decisionOutcome": "UNAVAILABLE",
+              "decisionAlignment": "UNAVAILABLE",
+              "historicalBackfill": false,
+              "cardIdentity": "2021 Bowman Phase5 Independent #4 PSA 10",
+              "observedChangeSignals": [],
+              "evidenceQuality": "LIMITED",
+              "observedAt": null,
+              "confidence": 40,
+              "verifyResolution": "NO_LATER_DECISION",
+              "marketState": "UNAVAILABLE",
+              "baselineSupportedValueCents": 26100,
+              "baselineAcceptedEvidenceCount": 1,
+              "observationStatus": null,
+              "horizonDays": 14,
+              "immutableBaseline": true,
+              "risk": 65,
+              "observedSupportedValueCents": null,
+              "evidenceQualityScore": null
+            },
+            {
+              "measurementState": "MISSING_OBSERVATION",
+              "evidenceQualityFromV13Contract": true,
+              "supportedValueChangePercent": null,
+              "t0EvaluatedAt": "2026-11-14T15:56:59.096988461Z",
+              "available": false,
+              "recommendation": "VERIFY",
+              "historicalRescoring": false,
+              "opportunityId": "EBAY-p5-independent-single",
+              "requestId": "req-EBAY-p5-independent-single",
+              "decisionOutcome": "UNAVAILABLE",
+              "decisionAlignment": "UNAVAILABLE",
+              "historicalBackfill": false,
+              "cardIdentity": "2021 Bowman Phase5 Independent #4 PSA 10",
+              "observedChangeSignals": [],
+              "evidenceQuality": "LIMITED",
+              "observedAt": null,
+              "confidence": 40,
+              "verifyResolution": "NO_LATER_DECISION",
+              "marketState": "UNAVAILABLE",
+              "baselineSupportedValueCents": 26100,
+              "baselineAcceptedEvidenceCount": 1,
+              "observationStatus": null,
+              "horizonDays": 30,
+              "immutableBaseline": true,
+              "risk": 65,
+              "observedSupportedValueCents": null,
+              "evidenceQualityScore": null
+            }
+          ],
+          "customerAccuracyClaimAuthorized": false,
+          "customerActionInferredFromDecision": false,
+          "observedCheckpointCount": 0,
+          "requiredHorizonsDays": [
+            7,
+            14,
+            30
+          ],
+          "measurableCheckpointCount": 0,
+          "requestId": "req-EBAY-p5-independent-single",
+          "t0Decision": "VERIFY",
+          "requiredProofCoverageComplete": false,
+          "realizedTransactionContext": {
+            "taxesIncluded": false,
+            "realizedNetProfitAvailable": false,
+            "profitabilityForecastValidatedByThisField": false,
+            "dispositionProceedsCents": null,
+            "acquisitionCostCents": null,
+            "available": false,
+            "grossCashDeltaCents": null,
+            "feesIncluded": false
+          },
+          "t0MaximumBuyPriceCents": null,
+          "t0SupportedValueCents": 26100
+        },
+        "available": true,
+        "phaseStatus": "INTEGRATED",
+        "historicalRescoring": false,
+        "whatChanged": [],
+        "profitabilityContext": {
+          "stressNetProfitCents": null,
+          "policyVersion": "PRE_V1_4",
+          "transactionAuthority": false,
+          "snapshotPresent": false,
+          "gateStatus": "UNAVAILABLE",
+          "expectedNetProfitCents": null,
+          "available": false,
+          "conservativeNetProfitCents": null,
+          "maximumBuyPriceCents": null,
+          "profitGuaranteed": false
+        },
+        "opportunityId": "EBAY-p5-independent-single",
+        "recommendationAndActionSeparate": true,
+        "phasePolicyVersion": "decision-change-intelligence-policy-v1",
+        "selfTrainingAuthorized": false,
+        "previousDecision": null,
+        "historicalBackfill": false,
+        "kind": "decision-change-intelligence",
+        "phaseVersion": "v1.5.0",
+        "legacyProvenanceVersion": "legacy-provenance-v1",
+        "historicalSnapshotsImmutable": true,
+        "customerAccuracyClaimAuthorized": false,
+        "decisionTransition": {
+          "toDecision": "VERIFY",
+          "causalAttributionClaimed": false,
+          "decisionChanged": false,
+          "changedSignalCount": 0,
+          "toRequestId": "req-EBAY-p5-independent-single",
+          "fromDecision": null,
+          "classification": "BASELINE_ONLY",
+          "fromRequestId": null,
+          "transitionAt": "2026-11-14T15:56:59.096988461Z"
+        },
+        "changeDomains": {
+          "causalAttributionClaimed": false,
+          "counts": {},
+          "domains": [],
+          "changeCount": 0
+        },
+        "priceBoundary": {
+          "reason": "A final BUY boundary is not reconstructed for a snapshot that did not save v1.4 profitability intelligence.",
+          "currentAllInAskCents": 24000,
+          "transactionAuthority": false,
+          "currentFinalDecision": "VERIFY",
+          "available": false,
+          "profitGuaranteed": false,
+          "profitabilityGuardrailApplied": true,
+          "status": "V1_4_PROFITABILITY_SNAPSHOT_UNAVAILABLE"
+        },
+        "evidenceProvenanceStatus": "CURRENT_EVIDENCE_RULES",
+        "customerAction": {
+          "recordVersion": 0,
+          "dispositionProceedsCents": null,
+          "acquisitionCostCents": null,
+          "outcomeStatus": "NONE",
+          "disposedAt": null,
+          "recommendationInferredAction": false,
+          "acquiredAt": null,
+          "trackingStatus": "WATCHING"
+        },
+        "snapshotCount": 1,
+        "authority": {
+          "timelineAuthority": "IMMUTABLE_SAVED_SNAPSHOTS",
+          "baseRecommendationAuthority": "SMART_OPPORTUNITY",
+          "transactionAuthority": false,
+          "finalBuyGate": "V1_4_PROFITABILITY_MARGIN_OF_SAFETY",
+          "outcomeAuthority": "GOVERNED_APPEND_ONLY_OUTCOME_INTELLIGENCE",
+          "browserRecomputationAuthorized": false,
+          "selfTrainingAuthorized": false,
+          "gradingAuthority": "EXISTING_PSA_INTELLIGENCE"
+        },
+        "legacyNotice": null,
+        "currentDecision": {
+          "allInAskCents": 24000,
+          "acceptedEvidenceCount": 1,
+          "profitabilityGateStatus": "UNAVAILABLE",
+          "decision": "VERIFY",
+          "workflowStatus": "REVIEW",
+          "evidenceQuality": "UNAVAILABLE",
+          "confidence": 40,
+          "evaluatedAt": "2026-11-14T15:56:59.096988461Z",
+          "immutable": true,
+          "requestId": "req-EBAY-p5-independent-single",
+          "risk": 65,
+          "maximumBuyPriceCents": null,
+          "supportedValueCents": 26100
+        },
+        "decisionStability": {
+          "snapshotCount": 1,
+          "currentDecision": "VERIFY",
+          "decisionChangeCount": 0,
+          "stableSince": "2026-11-14T15:56:59.096988461Z",
+          "historicalRescoring": false
+        },
+        "whatWouldChange": {
+          "priceOnlyAnalysis": true,
+          "savedReceiptConditionCount": 0,
+          "profitabilityGuardrailAppliedToBuyBoundary": true,
+          "priceBoundary": {
+            "reason": "A final BUY boundary is not reconstructed for a snapshot that did not save v1.4 profitability intelligence.",
+            "currentAllInAskCents": 24000,
+            "transactionAuthority": false,
+            "currentFinalDecision": "VERIFY",
+            "available": false,
+            "profitGuaranteed": false,
+            "profitabilityGuardrailApplied": true,
+            "status": "V1_4_PROFITABILITY_SNAPSHOT_UNAVAILABLE"
+          },
+          "transactionAuthority": false,
+          "usesExistingRecommendationAuthority": true,
+          "savedReceiptConditions": [],
+          "nonPriceConditionsRemainAuthoritative": true
+        }
+      },
+      "legacyNotice": null
+    },
+    "meta": {
+      "engineVersion": "customer-lifecycle+v15.05",
+      "evidenceFreshness": "CUSTOMER_WORKFLOW_FACTS",
+      "runtimeBuildCommitVerified": false,
+      "providerEvidenceMode": "PROVIDER_SALES_OFF",
+      "runtimeBuildIdentityVersion": "v1.0",
+      "contractVersion": "1.0",
+      "evidenceStorageGuard": "VERIFIED",
+      "authority": "Smart Opportunity",
+      "generatedAt": "2026-11-24T16:37:13.235683465Z",
+      "runtimeBuildCommit": "unknown",
+      "correlationId": "2bdd2e31-9620-4e2a-8ffd-07463c35de4c",
+      "gradingAuthority": "Existing PSA intelligence",
+      "limitations": [
+        "Customer lifecycle state is stored in tenant-scoped authoritative SQLite.",
+        "Lifecycle state does not rescore, rerank, replace, or override Smart Opportunity.",
+        "Tracked-card detail includes the immutable Decision Timeline and, when history exists, integrated v1.5 Decision Change Intelligence; historical entries are read from saved snapshots and are never recomputed with current evidence.",
+        "Decision Change Intelligence orchestrates saved timeline, counterfactual, profitability, outcome, and customer-action facts; the browser must not recompute decisions, price boundaries, profitability, or outcome assessments.",
+        "Older tracked resources with no immutable decision history remain visible and report timeline and Decision Change Intelligence as unavailable rather than reconstructed.",
+        "Portfolio reference values use only saved accepted exact completed-sale evidence behind explicit coverage and freshness gates; active asking prices are excluded.",
+        "Portfolio reference performance compares evidence-supported reference value with customer-entered acquisition cost. It is unrealized context, not an appraisal, guaranteed proceeds, or a fee/tax/liquidation estimate.",
+        "Review, decision-change, and Collection Signal alerts are in-app projections only; email, SMS, push, marketplace, and transaction delivery are not configured.",
+        "Decision-change alerts are derived only from immutable saved Decision Timeline transitions and do not rescore history.",
+        "Collection Signals explain material persisted monitoring changes and do not create acquisition, grading, or position verdicts.",
+        "Decision Review Signals are in-app prompts derived only from saved Decision Timeline entries and lifecycle records; they do not re-check listings, rescore history, or change a decision.",
+        "No lifecycle action authorizes a bid, purchase, listing, offer, checkout, payment, or transfer."
+      ],
+      "gatewayDisclosureFilter": "gateway-provider-disclosure-v1",
+      "gatewayDisclosureMode": "STANDARD"
+    }
+  }
+}

@@ -84,6 +84,36 @@
   });
   const WITHHELD_CODES = ["SINGLE_PROVIDER_SALE_BASIS", "FEW_PROVIDER_SALES_BASIS"];
 
+  // #1019 (decision-accountability-record-v1, checkpoint-accountability-v1): fixed labels, so no response can relabel
+  // a checkpoint as measured or a record as more complete than it is. Unknown codes are not shown.
+  const ACCOUNTABILITY_LABELS = Object.freeze({
+    MEASURED: "Measured: independently confirmed exact-card sales",
+    NOT_YET_DUE: "Not yet due",
+    WINDOW_OPEN: "Due now: window open",
+    MISSED: "Missed: nothing was recorded in the window",
+    NO_NEW_SALES: "Checked: no new completed sales",
+    NO_NEW_VERIFIED_EVIDENCE: "Checked: too few qualifying sales to measure",
+    PROVIDER_UNAVAILABLE: "Checked: no evidence source was available",
+    IDENTITY_INELIGIBLE: "Not measurable: exact card not confirmed",
+    COMPLETED_UNMEASURABLE: "Recorded, but not measurable"
+  });
+  const IDENTITY_LABELS = Object.freeze({ CONFIRMED: "Confirmed", NOT_CONFIRMED: "Not confirmed", NOT_RECORDED: "Not recorded" });
+  const SOURCE_BASIS_LABELS = Object.freeze({ DATA_PROVIDER: "Data-provider sales", MIXED: "Data-provider and independent sales",
+    INDEPENDENT_OR_OPERATOR_ENTERED: "Independent or operator-entered sales", NONE: "No qualifying sales" });
+  const NOT_RECORDED_LABELS = Object.freeze({
+    SALE_FRESHNESS: "How recent the sales were",
+    LISTING_VERIFICATION: "Listing verification",
+    EXACT_IDENTITY_CHECK: "Exact-card check",
+    EXCLUDED_EVIDENCE: "Evidence set aside",
+    ENGINE_COMPONENT_VERSIONS: "Engine component versions",
+    EVIDENCE_CANDIDATE_COUNTS: "Evidence candidate counts"
+  });
+  const FINDING_CODES = ["BUY_WITHOUT_DISCLOSED_VALUE_AND_MAX_BUY", "BUY_WITHOUT_CONFIRMED_IDENTITY", "PASS_ON_UNDISCLOSED_ECONOMICS",
+    "MAX_BUY_ABOVE_SUPPORTED_VALUE", "VALUE_WITHHELD_BUT_BUY_OR_WATCH"];
+  const VALUE_STATUSES = ["SHOWN", "SHOWN_NO_MAX_BUY", "SHOWN_VERIFY_NO_LIMIT", "WITHHELD", "LEGACY_HISTORICAL", "NOT_SUPPORTED"];
+  const code = value => /^[A-Z][A-Z0-9_]{0,63}$/.test(String(value || "")) ? String(value) : "";
+  const humanCode = value => { const c = code(value); return c ? c.charAt(0) + c.slice(1).toLowerCase().replace(/_/g, " ") : ""; };
+
   const v2 = timeline => /^outcome-checkpoint-timeline-v([2-9]|\d{2,})$/.test(String(timeline?.version || ""));
   const score = value => finite(value) ? `${Math.round(Number(value))}/100` : "Not recorded";
   const quality = value => {
@@ -205,6 +235,114 @@
       + `<dd>${reports.length ? `<ul class="ff-otl-reports">${reports.map(reportLine).join("")}</ul>` : "<strong>None reported</strong><small>Nothing you reported falls in this checkpoint.</small>"}</dd></div>`;
   }
 
+  // The record must keep its integrity promises, or only the record is left out (the timeline still shows).
+  function validRecord(r, timeline) {
+    if (!isObject(r) || r.kind !== "decision-accountability-record" || !/^decision-accountability-record-v\d+$/.test(String(r.version || ""))) return false;
+    if (r.immutable !== true || r.saleLevelDataIncluded !== false || r.historyRewritten !== false || r.savedDecisionRescored !== false
+      || r.accuracyClaim !== false || r.transactionAuthority !== false) return false;
+    const knew = r.whatFlipForgeKnew, unc = r.whatWasExcludedOrUncertain, why = r.whyThisDecision, later = r.whatLaterEvidenceRevealed;
+    if (![knew, unc, why, later].every(isObject) || !isObject(knew.value) || !isObject(knew.identity) || !isObject(knew.evidence)) return false;
+    if (String(r.snapshotSha256 || "") !== String(timeline.originalDecision?.snapshotSha256 || "")) return false;
+    if (!VALUE_STATUSES.includes(knew.value.status)) return false;
+    // A withheld, legacy or unsupported value never carries a figure.
+    if (["WITHHELD", "LEGACY_HISTORICAL", "NOT_SUPPORTED"].includes(knew.value.status)
+      && (finite(knew.value.supportedValueCents) || finite(knew.value.maximumBuyPriceCents))) return false;
+    if (withheldLabel(timeline, timeline.originalDecision) && knew.value.status !== "WITHHELD") return false;
+    if (later.originalRecommendationRetained !== true || later.marketMovementIsVerdictCorrectness !== false
+      || later.derivedEstimateIsRealizedProfit !== false || later.customerReportsAreUnverified !== true) return false;
+    if (!isObject(unc.excludedEvidence) || unc.excludedEvidence.countsOnly !== true) return false;
+    return true;
+  }
+
+  // Each checkpoint's accountability status, from the server's own code with a fixed label here.
+  function accountabilityLine(c) {
+    const a = c.accountability;
+    if (!isObject(a) || !Object.prototype.hasOwnProperty.call(ACCOUNTABILITY_LABELS, a.status)) return "";
+    if (a.status === "MEASURED" && (c.state !== "PRICE_OBSERVED" && c.underlyingState !== "PRICE_OBSERVED")) return "";
+    if (a.status !== "MEASURED" && a.measured === true) return "";
+    return `<p class="ff-otl-accountability" data-ff-otl-accountability="${escapeHtml(a.status)}" data-ff-otl-measured="${a.status === "MEASURED"}">`
+      + `<b>${escapeHtml(ACCOUNTABILITY_LABELS[a.status])}</b> <small>${escapeHtml(text(a.explanation))}</small></p>`;
+  }
+
+  function countList(map) {
+    if (!isObject(map)) return [];
+    return Object.keys(map).filter(k => code(k) && finite(map[k]) && Number(map[k]) > 0)
+      .map(k => `${humanCode(k)}: ${Number(map[k])}`);
+  }
+
+  // "What FlipForge knew at the time": identity, rules, evidence counts and basis, what was set aside, uncertainty,
+  // the value as decided (only where allowed) and what the record does not hold. Display only.
+  function recordMarkup(timeline) {
+    const r = timeline.accountabilityRecord;
+    if (!validRecord(r, timeline)) return "";
+    const knew = r.whatFlipForgeKnew, unc = r.whatWasExcludedOrUncertain, why = r.whyThisDecision;
+    const id = knew.identity, ev = knew.evidence, rules = isObject(knew.ruleVersions) ? knew.ruleVersions : {}, v = knew.value;
+    const identity = IDENTITY_LABELS[id.basis] || "Not recorded";
+    const listing = humanCode(id.listingVerificationStatus) || "Not recorded";
+    const valueText = v.status === "WITHHELD" ? (withheldLabel(timeline, timeline.originalDecision) || "Value withheld")
+      : v.status === "LEGACY_HISTORICAL" ? "Historical value not shown"
+      : v.status === "NOT_SUPPORTED" ? "No supported value"
+      : finite(v.supportedValueCents) ? money(v.supportedValueCents) : "Not recorded";
+    const maxBuyText = v.status === "SHOWN" && finite(v.maximumBuyPriceCents) ? money(v.maximumBuyPriceCents)
+      : v.status === "SHOWN_VERIFY_NO_LIMIT" ? "No buying limit (VERIFY)"
+      : v.status === "SHOWN_NO_MAX_BUY" ? "None: no price works" : "Not shown";
+    const facts = [
+      ["Exact card as decided", text(knew.cardIdentity) || "Not recorded"],
+      ["Exact-card check", identity],
+      ["Listing check", listing],
+      ["Decided", text(knew.decidedOnText) || "Not recorded"],
+      ["Your ask (all-in)", finite(knew.askCents) ? money(knew.askCents) : "Not recorded"],
+      ["Qualifying exact sales", finite(ev.qualifiedExactSales) ? String(Number(ev.qualifiedExactSales)) : "Not recorded"],
+      ["Evidence source", SOURCE_BASIS_LABELS[ev.sourceBasis] || "Not recorded"],
+      ["How recent the sales were", "Not recorded"],
+      ["Supported value at decision", valueText],
+      ["Max Buy at decision", maxBuyText],
+      // The version identifiers are shown as recorded (they are what Audit Export and the trust audit reference),
+      // after a plain label saying whether the decision was made under today's rules or earlier ones.
+      ["Decision rules", text(rules.decisionRules)
+        ? `${rules.decidedUnderEarlierRules === true ? "Earlier rules" : rules.decidedUnderEarlierRules === false ? "Today's rules" : "Recorded rules"} · version ${text(rules.decisionRules)}`
+        : "Not recorded"],
+      ["Profitability policy", text(rules.profitabilityPolicy) ? `version ${text(rules.profitabilityPolicy)}` : "Not recorded"]
+    ];
+    const ex = isObject(unc.excludedEvidence) ? unc.excludedEvidence : {};
+    const setAside = [];
+    if (isObject(ex.qualifiedEvidenceNotUsed)) {
+      Object.keys(ex.qualifiedEvidenceNotUsed).forEach(st => countList(ex.qualifiedEvidenceNotUsed[st])
+        .forEach(line => setAside.push(`${humanCode(st)} · ${line}`)));
+    }
+    countList(ex.dataProviderRowsNotQualified).forEach(line => setAside.push(`Data-provider sale not qualified · ${line}`));
+    const exclusions = ex.recorded !== true ? `<p class="ff-otl-note" data-ff-acct-exclusions="not-recorded">Not recorded: this decision was saved before FlipForge recorded which evidence it set aside.</p>`
+      : setAside.length ? `<ul class="ff-otl-why" data-ff-acct-exclusions="listed">${setAside.map(l => `<li>${escapeHtml(l)}</li>`).join("")}</ul>`
+        : `<p class="ff-otl-note" data-ff-acct-exclusions="none">No evidence was set aside.</p>`;
+    const consistency = isObject(why.consistency) ? why.consistency : {};
+    const findings = Array.isArray(consistency.findings) ? consistency.findings.filter(f => isObject(f) && FINDING_CODES.includes(f.code)) : [];
+    const findingsMarkup = findings.length
+      ? `<div class="ff-otl-verification" data-ff-acct-consistency="findings"><strong>Under today's rules this decision would be different</strong>`
+        + `<span>${escapeHtml(text(consistency.note))}</span><ul>${findings.map(f => `<li>${escapeHtml(text(f.explanation))}</li>`).join("")}</ul></div>`
+      : `<p class="ff-otl-note" data-ff-acct-consistency="consistent">${escapeHtml(text(consistency.note) || "The saved explanation matches the saved verdict and its evidence basis.")}</p>`;
+    const notRecorded = Array.isArray(r.notRecorded) ? r.notRecorded.map(k => NOT_RECORDED_LABELS[k]).filter(Boolean) : [];
+    const rulesNote = text(why.rulesDisclosure) ? `<p class="ff-otl-note" data-ff-acct-rules>${escapeHtml(why.rulesDisclosure)}</p>` : "";
+    return `<section class="ff-otl-question" data-ff-otl-question="knew" data-ff-acct-record="${escapeHtml(r.recordStatus || "")}">`
+      + `<h3>What FlipForge knew at the time, and what it set aside</h3>`
+      + `<p class="ff-otl-answer" data-ff-acct-identity="${escapeHtml(code(id.basis) || "NOT_RECORDED")}">${escapeHtml(text(id.explanation))}</p>`
+      + `<div class="customer-outcome-baseline ff-otl-evidence" data-ff-acct-facts>${facts.map(([k, val]) => `<span><small>${escapeHtml(k)}</small><strong>${escapeHtml(val)}</strong></span>`).join("")}</div>`
+      + `<h4 class="ff-otl-subhead">Evidence looked at but not counted</h4>${exclusions}`
+      + `<h4 class="ff-otl-subhead">Uncertainty</h4><p class="ff-otl-note" data-ff-acct-uncertainty>Confidence ${escapeHtml(score(unc.confidence))} · Risk ${escapeHtml(score(unc.risk))}. ${escapeHtml(text(unc.confidenceMeaning))}</p>`
+      + (text(unc.missingRequirement) ? `<p class="ff-otl-note" data-ff-acct-missing>What would change it: ${escapeHtml(unc.missingRequirement)}</p>` : "")
+      + `<h4 class="ff-otl-subhead">Is the explanation consistent?</h4>${findingsMarkup}${rulesNote}`
+      + (notRecorded.length ? `<p class="ff-otl-note" data-ff-acct-not-recorded>Not recorded in this saved decision: ${escapeHtml(notRecorded.join(", "))}. FlipForge does not fill these in.</p>` : "")
+      + `<p class="ff-otl-note">Receipt fingerprint ${escapeHtml(String(r.receiptSha256 || "not recorded").slice(0, 12))} · decision record ${escapeHtml(String(r.snapshotSha256 || "").slice(0, 12))}. Counts only: individual sales are never shown.</p>`
+      + `</section>`;
+  }
+
+  function summaryMarkup(timeline) {
+    const s = timeline.accountabilitySummary;
+    const r = timeline.accountabilityRecord;
+    if (!isObject(s) || s.accuracyClaim !== false || !finite(s.measured) || !finite(s.due)) return "";
+    const limitation = validRecord(r, timeline) && text(r.whatLaterEvidenceRevealed.limitation) ? ` ${r.whatLaterEvidenceRevealed.limitation}` : "";
+    return `<p class="ff-otl-answer" data-ff-acct-summary data-ff-acct-measured="${Number(s.measured)}">${escapeHtml(text(s.statement) + limitation)}</p>`;
+  }
+
   function checkpointMarkup(c) {
     const label = STATE_LABELS[c.state];
     const conflict = c.evidenceConflict?.present === true ? `<p class="ff-otl-conflict" data-ff-otl-conflict>${escapeHtml(text(c.evidenceConflict.explanation))}</p>` : "";
@@ -214,7 +352,7 @@
     return `<article class="customer-outcome-checkpoint ff-otl-checkpoint" data-state="${escapeHtml(c.state)}" data-ff-otl-horizon="${escapeHtml(c.horizonDays)}">`
       + `<div class="customer-outcome-checkpoint-head"><span class="eyebrow">Day ${escapeHtml(c.horizonDays)}</span><strong class="ff-otl-state" data-ff-otl-state="${escapeHtml(c.state)}">${escapeHtml(label)}</strong></div>`
       + `<p class="ff-otl-dates">Due ${escapeHtml(text(c.dueOnText))} · ${escapeHtml(windowWord)} ${escapeHtml(text(c.windowClosesOnText))}</p>`
-      + `<p class="ff-otl-explanation">${escapeHtml(text(c.explanation))}</p>${changed}`
+      + `<p class="ff-otl-explanation">${escapeHtml(text(c.explanation))}</p>${accountabilityLine(c)}${changed}`
       + `<dl class="ff-otl-streams">${streamA(c)}${streamB(c)}${streamC(c)}</dl>`
       + `${verify}${conflict}${reconstructionMarkup(c.historicalReconstruction)}</article>`;
   }
@@ -277,11 +415,13 @@
       + `<div class="customer-outcome-baseline ff-otl-evidence" data-ff-otl-evidence>${evidenceFacts.map(([k, v]) => `<span><small>${escapeHtml(k)}</small><strong>${escapeHtml(v)}</strong></span>`).join("")}</div>`
       + `<p class="ff-otl-note">Counts, quality, confidence and risk only: individual sale prices are never shown.</p>`
       + `<div class="customer-outcome-baseline">${baseline}${receipt}<span><small>Later re-evaluations</small><strong>${escapeHtml(String(Number(d.laterReevaluationCount) || 0))}</strong></span></div></section>`
+      + recordMarkup(timeline)
       + `<section class="ff-otl-question" data-ff-otl-question="evidence"><h3>2. What changed at Day 7, Day 14 and Day 30</h3>`
       + `<p class="ff-otl-legend"><b>A</b> ${escapeHtml(STREAM_LABELS.A)}: FlipForge's own estimate, direction only · <b>B</b> ${escapeHtml(STREAM_LABELS.B)}: independent exact-card completed sales · <b>C</b> ${escapeHtml(STREAM_LABELS.C)}: what you reported</p>`
       + `<div class="customer-outcome-checkpoints">${timeline.checkpoints.map(checkpointMarkup).join("")}</div>${outside}</section>`
       + `<section class="ff-otl-question" data-ff-otl-question="conclusion"><h3>3. What can be concluded</h3>`
       + `<p class="ff-otl-answer" data-ff-otl-conclusion="${escapeHtml(text(timeline.conclusion.code))}">${escapeHtml(text(timeline.conclusion.statement))}</p>`
+      + summaryMarkup(timeline)
       + verificationMarkup(timeline) + `</section>`
       + `</div></section>`;
   }
@@ -375,5 +515,5 @@
   window.addEventListener("hashchange", () => { state.serial++; state.opportunityId = ""; state.detail = null; removeStalePanels(""); schedule(); });
   schedule();
 
-  window.FlipForgeOutcomeTimeline = Object.freeze({ valid, markup, mount, STATE_LABELS, STREAM_LABELS, MOVEMENT_LABELS });
+  window.FlipForgeOutcomeTimeline = Object.freeze({ valid, validRecord, markup, mount, STATE_LABELS, STREAM_LABELS, MOVEMENT_LABELS, ACCOUNTABILITY_LABELS });
 })();

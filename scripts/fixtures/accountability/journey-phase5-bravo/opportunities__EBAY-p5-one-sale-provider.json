@@ -1,0 +1,11 @@
+{
+  "status": 404,
+  "body": {
+    "error": {
+      "code": "RESOURCE_NOT_FOUND",
+      "generatedAt": "2026-11-24T16:38:31.494938478Z",
+      "correlationId": "a2963104-393f-4084-a1bd-871087764f59",
+      "message": "The requested saved resource was not found."
+    }
+  }
+}
