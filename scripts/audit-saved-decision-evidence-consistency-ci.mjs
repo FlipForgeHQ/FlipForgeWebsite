@@ -139,9 +139,12 @@ async function diagnostics(page, text) {
   const dom = await page.evaluate(() => {
     const p = document.querySelector("#main-content .customer-management-page");
     return { hash: location.hash, dataset: p ? { ...p.dataset } : null, metrics: Boolean(document.querySelector("#main-content .customer-management-metrics")),
+      metricsText: document.querySelector("#main-content .customer-management-metrics")?.textContent.replace(/\s+/g, " ").trim().slice(0, 160) || "",
+      split: document.querySelector("#main-content .customer-management-page")?.dataset.ffEvidenceAuthoritySplit || "",
+      hidden: document.hidden, visibility: document.visibilityState,
       empty: Boolean(document.querySelector("#main-content .staging-empty")), error: document.querySelector("#main-content .staging-error, #main-content [role=alert]")?.textContent.trim().slice(0, 200) || "" };
   }).catch(e => ({ unreadable: String(e).slice(0, 120) }));
-  return `${text.slice(0, 2500)} || dom=${JSON.stringify(dom)} || trace=${(page.__ffTrace || []).join(" ; ")}`;
+  return `${text.slice(0, 2500)} || dom=${JSON.stringify(dom)} || pageerrors=${JSON.stringify(page.__ffErrors || [])} || trace=${(page.__ffTrace || []).join(" ; ")}`;
 }
 
 async function savedDecisionWording(page, pattern) {
@@ -200,6 +203,7 @@ async function open(base, route, { device = null, wait = 4500 } = {}) {
   page.on("console", m => { if (m.type() === "error" || m.type() === "warning") trace.push(`console.${m.type()} ${m.text().slice(0, 160)}`); });
   page.on("framenavigated", f => { if (f === page.mainFrame()) trace.push(`nav ${new URL(f.url()).hash}`); });
   page.__ffTrace = trace;
+  page.__ffErrors = errors; // uncaught exceptions (e.g. in an animation-frame layer) arrive here, not as console messages
   await page.goto(`${base}#/${route}`, { waitUntil: "load" });
   await page.waitForTimeout(wait);
   await page.evaluate(() => document.querySelectorAll("#main-content details").forEach(d => { d.open = true; }));
