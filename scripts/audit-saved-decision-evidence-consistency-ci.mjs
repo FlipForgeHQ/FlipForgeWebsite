@@ -135,6 +135,15 @@ const lifecycle = id => ({ opportunityId: id, trackingStatus: "WATCHING", outcom
 // The saved-decision section renders after the page shell (its data arrives separately). Wait until either the
 // expected or the forbidden wording is present, so the assertion that follows judges the rendered result, not a
 // half-loaded page. A timeout is not a pass: the check still runs on whatever text is there.
+async function diagnostics(page, text) {
+  const dom = await page.evaluate(() => {
+    const p = document.querySelector("#main-content .customer-management-page");
+    return { hash: location.hash, dataset: p ? { ...p.dataset } : null, metrics: Boolean(document.querySelector("#main-content .customer-management-metrics")),
+      empty: Boolean(document.querySelector("#main-content .staging-empty")), error: document.querySelector("#main-content .staging-error, #main-content [role=alert]")?.textContent.trim().slice(0, 200) || "" };
+  }).catch(e => ({ unreadable: String(e).slice(0, 120) }));
+  return `${text.slice(0, 2500)} || dom=${JSON.stringify(dom)} || trace=${(page.__ffTrace || []).join(" ; ")}`;
+}
+
 async function savedDecisionWording(page, pattern) {
   await page.waitForFunction((src) => new RegExp(src).test(document.body?.innerText || ""), pattern.source, { timeout: 20000 }).catch(() => {});
 }
@@ -183,6 +192,14 @@ async function open(base, route, { device = null, wait = 4500 } = {}) {
   const page = await context.newPage();
   const errors = [];
   page.on("pageerror", e => errors.push(e.message.slice(0, 160)));
+  // Diagnostics only (E3 fails intermittently on hosted runners): what the browser asked for, got and logged.
+  const trace = [];
+  page.on("request", r => { if (r.url().includes("/api/v1/")) trace.push(`req ${new URL(r.url()).pathname}`); });
+  page.on("response", r => { if (r.url().includes("/api/v1/")) trace.push(`res ${r.status()} ${new URL(r.url()).pathname}`); });
+  page.on("requestfailed", r => trace.push(`failed ${new URL(r.url()).pathname} ${r.failure()?.errorText || ""}`));
+  page.on("console", m => { if (m.type() === "error" || m.type() === "warning") trace.push(`console.${m.type()} ${m.text().slice(0, 160)}`); });
+  page.on("framenavigated", f => { if (f === page.mainFrame()) trace.push(`nav ${new URL(f.url()).hash}`); });
+  page.__ffTrace = trace;
   await page.goto(`${base}#/${route}`, { waitUntil: "load" });
   await page.waitForTimeout(wait);
   await page.evaluate(() => document.querySelectorAll("#main-content details").forEach(d => { d.open = true; }));
@@ -260,7 +277,7 @@ try {
       const text = await all(s.page);
       check(`E3 ${label} evidence page: saved BUY on 8 sales is not headed "No sales support this decision yet"`,
         /Evidence behind this saved decision/.test(text) && /8 exact completed sales supported this decision when it was made\./.test(text)
-        && !/No sales support this decision yet|No exact completed sales support this card yet/.test(text), text.slice(0, 600));
+        && !/No sales support this decision yet|No exact completed sales support this card yet/.test(text), await diagnostics(s.page, text));
       check(`E8 ${label} evidence page: accurate evidence availability wording`,
         !OVERCLAIM.test(text) && !/Sale records aren't kept/i.test(text) && /may have no sales of this exact card/.test(text), (text.match(OVERCLAIM) || [""])[0]);
       check(`E3 ${label} evidence page: decision date readable`, /Decision saved\s*Oct 8, 2026/.test(text) && !/2026-10-08/.test(text));
@@ -269,7 +286,7 @@ try {
       await u.page.waitForSelector('[data-ff-evidence-authority-split="true"]', { timeout: 20000 }).catch(() => {}); // a cold first load can exceed the fixed wait
       await savedDecisionWording(u.page, /did not record how many exact sales it used|No sales support this decision yet/);
       const utext = await all(u.page);
-      check(`E3 ${label} evidence page: unrecorded count says so, never "No sales support"`, /did not record how many exact sales it used/.test(utext) && !/No sales support this decision yet/.test(utext), utext.slice(0, 600));
+      check(`E3 ${label} evidence page: unrecorded count says so, never "No sales support"`, /did not record how many exact sales it used/.test(utext) && !/No sales support this decision yet/.test(utext), await diagnostics(u.page, utext));
       await u.context.close();
       const l = await open(BETA, "evidence/qa-sd-legacy", { device });
       await l.page.waitForSelector('[data-ff-evidence-authority-split="true"]', { timeout: 20000 }).catch(() => {}); // a cold first load can exceed the fixed wait
