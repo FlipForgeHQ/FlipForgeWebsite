@@ -132,6 +132,13 @@ const envelope = (correlationId, data) => ({
 const lifecycle = id => ({ opportunityId: id, trackingStatus: "WATCHING", outcomeStatus: "NONE", reviewAt: null, alertEnabled: false,
   acquisitionCostCents: null, acquiredAt: null, dispositionProceedsCents: null, disposedAt: null, version: 1 });
 
+// The saved-decision section renders after the page shell (its data arrives separately). Wait until either the
+// expected or the forbidden wording is present, so the assertion that follows judges the rendered result, not a
+// half-loaded page. A timeout is not a pass: the check still runs on whatever text is there.
+async function savedDecisionWording(page, pattern) {
+  await page.waitForFunction((src) => new RegExp(src).test(document.body?.innerText || ""), pattern.source, { timeout: 20000 }).catch(() => {});
+}
+
 async function fixture(route) {
   const url = new URL(route.request().url());
   const cid = route.request().headers()["x-correlation-id"] || "saved-decisions-audit";
@@ -249,6 +256,7 @@ try {
     {
       const s = await open(BETA, "evidence/qa-sd-known", { device });
       await s.page.waitForSelector('[data-ff-evidence-authority-split="true"]', { timeout: 20000 }).catch(() => {}); // a cold first load can exceed the fixed wait
+      await savedDecisionWording(s.page, /Evidence behind this saved decision/);
       const text = await all(s.page);
       check(`E3 ${label} evidence page: saved BUY on 8 sales is not headed "No sales support this decision yet"`,
         /Evidence behind this saved decision/.test(text) && /8 exact completed sales supported this decision when it was made\./.test(text)
@@ -259,6 +267,7 @@ try {
       await s.context.close();
       const u = await open(BETA, "evidence/qa-sd-unknown", { device });
       await u.page.waitForSelector('[data-ff-evidence-authority-split="true"]', { timeout: 20000 }).catch(() => {}); // a cold first load can exceed the fixed wait
+      await savedDecisionWording(u.page, /did not record how many exact sales it used|No sales support this decision yet/);
       const utext = await all(u.page);
       check(`E3 ${label} evidence page: unrecorded count says so, never "No sales support"`, /did not record how many exact sales it used/.test(utext) && !/No sales support this decision yet/.test(utext));
       await u.context.close();
