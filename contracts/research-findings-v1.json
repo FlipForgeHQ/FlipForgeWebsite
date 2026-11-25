@@ -288,7 +288,8 @@
       "summary": "A $945 listing looked $280 below FlipForge's earlier value. Newer evidence put the card near $911; after fees, buying would model a $157.43 loss.",
       "researchDates": "Nov 20 and Nov 24, 2026",
       "sampleSize": "1 listing; 197 earlier sales, 73 newer qualified sales",
-      "cta": "Request Beta Access"
+      "cta": "Request Beta Access",
+      "publication": {"status": "INTERNAL_PREVIEW", "blockers": ["Founder publication approval", "Every finding and case study the file cites must be approved"], "approvedBy": null, "approvedOn": null}
     },
     {
       "id": "df-02-176-excluded",
@@ -298,7 +299,8 @@
       "summary": "Of 575 sale records in the card's own grade, 399 qualified. 167 were held because their price could not be established, and 9 named a different card.",
       "researchDates": "Nov 24, 2026",
       "sampleSize": "575 records, 8 cards",
-      "cta": "Request Beta Access"
+      "cta": "Request Beta Access",
+      "publication": {"status": "INTERNAL_PREVIEW", "blockers": ["Founder publication approval", "Every finding and case study the file cites must be approved"], "approvedBy": null, "approvedOn": null}
     },
     {
       "id": "df-03-three-of-four",
@@ -308,7 +310,8 @@
       "summary": "Four listings were priced below FlipForge's own value. After 13% fees and $5 fulfilment, three modeled a loss at their asking price. None received BUY.",
       "researchDates": "Nov 20, 2026 (analysis Nov 25)",
       "sampleSize": "4 selected listings of 21 evaluations",
-      "cta": "Request Beta Access"
+      "cta": "Request Beta Access",
+      "publication": {"status": "INTERNAL_PREVIEW", "blockers": ["Founder publication approval", "Every finding and case study the file cites must be approved"], "approvedBy": null, "approvedOn": null}
     },
     {
       "id": "df-04-accountable",
@@ -318,7 +321,8 @@
       "summary": "Every saved decision is frozen at Day 0 and reviewed at Days 7, 14 and 30. Outcomes count only when an authorized independent source confirms them; until then the result is pending.",
       "researchDates": "Cohorts frozen Nov 20 and Nov 23, 2026",
       "sampleSize": "38 saved real-listing decisions",
-      "cta": "Request Beta Access"
+      "cta": "Request Beta Access",
+      "publication": {"status": "INTERNAL_PREVIEW", "blockers": ["Founder publication approval", "Every finding and case study the file cites must be approved"], "approvedBy": null, "approvedOn": null}
     }
   ],
   "accountability": {

@@ -33,6 +33,8 @@ check('R03 every finding states value, classification, source, sample, method, l
 check('R04 every classification and publication status is a known one', data.findings.every(x =>
   data.classifications[x.classification] && data.publicationStatuses[x.publication.status]));
 check('R05 every finding names a recorded source', data.findings.every(x => data.sources.some(s => s.id === x.source)));
+check('R10 every case study and Decision File has its own publication status', [...data.caseStudies, ...data.decisionFiles]
+  .every(x => x.publication && data.publicationStatuses[x.publication.status] && Array.isArray(x.publication.blockers)));
 check('R06 ids are unique', new Set(data.findings.map(x => x.id)).size === data.findings.length);
 check('R07 the source is never served (/contracts/* answers 404)', read('netlify/modern-functions/internal-path-guard.mjs').includes('"/contracts/*"'));
 check('R08 the internal preview folder is git-ignored, answers 404 and is stripped from the publish directory', read('.gitignore').split(/\r?\n/).includes('research-preview/')
@@ -78,8 +80,10 @@ check('P02 the public pages are exactly the public render of the source (no hand
 const renderedIds = attr => [...pub.matchAll(new RegExp(`${attr}="([^"]*)"`, 'g'))].flatMap(m => m[1].split(/\s+/)).filter(Boolean);
 const shownFindings = renderedIds('data-rx-finding');
 const shownCases = renderedIds('data-rx-case');
-const unapprovedShown = [...shownFindings.filter(id => !approved(f(id))), ...shownCases.filter(id => !approved(data.caseStudies.find(c => c.id === id)))];
-check('P03 every finding and case rendered on a public page is approved', unapprovedShown.length === 0, unapprovedShown.join(', '));
+const shownFiles = renderedIds('data-rx-file');
+const unapprovedShown = [...shownFindings.filter(id => !approved(f(id))), ...shownCases.filter(id => !approved(data.caseStudies.find(c => c.id === id))),
+  ...shownFiles.filter(n => !approved(data.decisionFiles.find(d => d.number === n))).map(n => `file ${n}`)];
+check('P03 every finding, case and Decision File rendered on a public page is approved', unapprovedShown.length === 0, unapprovedShown.join(', '));
 const preview4 = render(data, {preview: true});
 const previewTagged = (preview4.homeLead + preview4.homeAdvantage + preview4.proofResearch).match(/data-rx-finding="[^"]*"/g) || [];
 check('P04 every rendered statistic, row, chart and file carries its finding identity (so P03 sees all of it)',
@@ -115,7 +119,7 @@ const approve = item => Object.assign(item.publication, {status: 'APPROVED', blo
 const oneApproved = JSON.parse(JSON.stringify(data));
 approve(oneApproved.findings.find(x => x.id === 'records-qualified'));
 const oneOut = render(oneApproved, {preview: false});
-const oneIds = [...(oneOut.homeLead + oneOut.homeAdvantage + oneOut.proofResearch).matchAll(/data-rx-finding="([^"]*)"/g)].flatMap(m => m[1].split(/\s+/));
+const oneIds = [...(oneOut.homeLead + oneOut.homeAdvantage + oneOut.proofResearch).matchAll(/data-rx-finding="([^"]*)"/g)].flatMap(m => m[1].split(/\s+/)).filter(Boolean);
 check('P17 approving one finding publishes it alone (other findings in its text are not counted as published)',
   oneIds.includes('records-qualified') && oneIds.every(id => id === 'records-qualified' || approved(oneApproved.findings.find(x => x.id === id))));
 const caseOnly = JSON.parse(JSON.stringify(data));
@@ -149,13 +153,26 @@ const horizonsHonest = d => {
   return pendingLabelled && (count === 0 ? !anyMeasured : anyMeasured);
 };
 const measuredFixture = JSON.parse(JSON.stringify(data));
-measuredFixture.findings.find(x => x.id === 'independent-outcomes-measured').value = 1;
+Object.assign(measuredFixture.findings.find(x => x.id === 'independent-outcomes-measured'), {value: 1, display: '1'});
 Object.assign(measuredFixture.accountability.horizons.find(x => x.key === 'D7'), {status: 'MEASURED', statusText: '1 independently verified outcome'});
 const contradiction = JSON.parse(JSON.stringify(data));
-contradiction.findings.find(x => x.id === 'independent-outcomes-measured').value = 3;
+Object.assign(contradiction.findings.find(x => x.id === 'independent-outcomes-measured'), {value: 3, display: '3'});
+// Built explicitly (not inherited from the live data): every follow-up horizon pending, yet a positive count.
+contradiction.accountability.horizons.filter(x => x.key !== 'D0').forEach(x => Object.assign(x, {status: 'PENDING', statusText: 'Validation pending'}));
 check('H05 pending horizons say validation is pending, and the verified-outcome count agrees with the horizons', horizonsHonest(data));
 check('H05b real outcomes can be published from the source alone, and a count with every horizon pending is refused',
   horizonsHonest(measuredFixture) && !horizonsHonest(contradiction));
+// Fixtures are built explicitly, never inherited from the live data, so the checks hold however the data moves on.
+const pendingFixture = JSON.parse(JSON.stringify(data));
+Object.assign(pendingFixture.findings.find(x => x.id === 'independent-outcomes-measured'), {value: 0, display: '0'});
+pendingFixture.accountability.horizons.filter(x => x.key !== 'D0').forEach(x => Object.assign(x, {status: 'PENDING', statusText: 'Validation pending'}));
+approve(pendingFixture.findings.find(x => x.id === 'records-qualified'));
+const outcomeFixture = JSON.parse(JSON.stringify(measuredFixture));
+approve(outcomeFixture.findings.find(x => x.id === 'records-qualified'));
+const outcomeHome = render(outcomeFixture, {preview: false}).homeAdvantage;
+check('P19 the homepage outcome sentence follows the source (no "validation pending" once outcomes are measured)',
+  outcomeHome.includes('Independently verified purchasing outcomes: 1 (Day 7)') && !outcomeHome.includes('validation pending')
+  && render(pendingFixture, {preview: false}).homeAdvantage.includes('validation pending'));
 check('H06 Proof100 stays withdrawn and its figures stay off the pages', data.proof100.status === 'WITHDRAWN'
   && !/17\/17|42 measurable|58 unresolved|100 frozen decisions/.test(home + proof));
 check('H07 the comparison disclaims judging specific products', data.comparison.note.includes('not of any specific product'));

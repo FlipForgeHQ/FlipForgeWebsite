@@ -196,6 +196,14 @@ ${rows}
 </section>`;
 }
 
+// The verified-outcome sentence comes from the source, so it can never contradict Decision Proof.
+function outcomeStatement(cx) {
+  const v = cx.get('independent-outcomes-measured');
+  if (!approved(v) || v.value === 0) return 'Independently verified purchasing outcomes: validation pending.';
+  const measured = cx.data.accountability.horizons.filter(h => h.key !== 'D0' && h.status !== 'PENDING').map(h => h.label);
+  return `Independently verified purchasing outcomes: ${v.display}${measured.length ? ` (${measured.join(', ')})` : ''}. See Decision Proof for each horizon.`;
+}
+
 function homeAdvantage(cx) {
   const ids = ['records-qualified', 'valuation-diagnostic', 'apparent-bargains-unprofitable'];
   const shown = ids.filter(cx.can).map(cx.get);
@@ -208,7 +216,7 @@ function homeAdvantage(cx) {
     <ul class="ff-rx-stats ff-rx-stats-light" aria-label="Decision Advantage research highlights">
 ${tiles}
     </ul>
-    <p class="ff-rx-method">Measured research, diagnostic comparisons and modeled economics are labelled separately. Independently verified purchasing outcomes: validation pending.</p>
+    <p class="ff-rx-method">Measured research, diagnostic comparisons and modeled economics are labelled separately. ${esc(outcomeStatement(cx))}</p>
     ${cx.attribution(shown)}
     <a class="ff-rx-link ff-rx-link-dark" href="decision-proof.html${cx.targets.research.anchor}" data-rx-proof-link="advantage">${esc(cx.targets.research.short)} <span aria-hidden="true">→</span></a>
   </div>
@@ -367,7 +375,7 @@ function files(cx) {
   };
   const list = cx.data.decisionFiles.filter(fileOk);
   if (!list.length) return '';
-  const cards = list.map(f => `        <article class="ff-rx-file" data-rx-file="${esc(f.number)}" data-rx-finding="${esc(f.findings.join(' '))}"${f.caseStudy ? ` data-rx-case="${esc(f.caseStudy)}"` : ''}>
+  const cards = list.map(f => `        <article class="ff-rx-file" data-rx-file="${esc(f.number)}"${f.findings.length ? ` data-rx-finding="${esc(f.findings.join(' '))}"` : ''}${f.caseStudy ? ` data-rx-case="${esc(f.caseStudy)}"` : ''}>
           <p class="ff-rx-file-n">Decision File ${esc(f.number)}${cx.preview && !approved(f) ? ' <span class="ff-rx-chip">Preview · not approved</span>' : ''}</p>
           <h3>${esc(f.title)}</h3>
           <p>${esc(f.summary)}</p>
