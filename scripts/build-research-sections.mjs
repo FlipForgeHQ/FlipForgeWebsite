@@ -88,7 +88,7 @@ function strip(cx) {
     </div>`;
   let body;
   if (shown.length) {
-    const tiles = shown.map(f => `      <li class="ff-rx-stat">
+    const tiles = shown.map(f => `      <li class="ff-rx-stat" data-rx-finding="${esc(f.id)}">
         <strong>${counter(f)}</strong>
         <span>${esc(f.label)}${cx.chip(f)}</span>
         <small>${esc(f.sample)}</small>
@@ -134,7 +134,7 @@ function caseStudy(cx) {
   const f = c.facts;
   const m = caseMath(c);
   const feePct = Math.round(c.assumptions.feeRate * 100);
-  return `<section class="ff-rx ff-rx-case ff10-light" id="decision-file-01" aria-labelledby="ff-rx-case-title" data-rx-section="case-study">
+  return `<section class="ff-rx ff-rx-case ff10-light" id="decision-file-01" aria-labelledby="ff-rx-case-title" data-rx-section="case-study" data-rx-case="${esc(c.id)}">
   <div class="ff10-wrap">
     <div class="ff-rx-case-head">
       <p class="ff-rx-eyebrow">FlipForge Decision File 01 · ${esc(c.kind)}${cx.chip(c)}</p>
@@ -200,7 +200,7 @@ function homeAdvantage(cx) {
   const ids = ['records-qualified', 'valuation-diagnostic', 'apparent-bargains-unprofitable'];
   const shown = ids.filter(cx.can).map(cx.get);
   if (!shown.length) return '';
-  const tiles = shown.map(f => `      <li class="ff-rx-stat"><strong>${counter(f)}</strong><span>${esc(f.label)}${cx.chip(f)}</span><small>${esc(cx.label(f.classification))} · ${esc(f.sample)}</small></li>`).join('\n');
+  const tiles = shown.map(f => `      <li class="ff-rx-stat" data-rx-finding="${esc(f.id)}"><strong>${counter(f)}</strong><span>${esc(f.label)}${cx.chip(f)}</span><small>${esc(cx.label(f.classification))} · ${esc(f.sample)}</small></li>`).join('\n');
   return `<section class="ff-rx ff-rx-adv ff10-light" id="decision-advantage-teaser" aria-labelledby="ff-rx-adv-title" data-rx-section="advantage">
   <div class="ff10-wrap">
     <p class="ff-rx-eyebrow">Research center</p>
@@ -243,7 +243,7 @@ function qualificationChart(cx) {
   const legend = [[q, 'q'], [h, 'h'], [r, 'r']].map(([f, k]) => `<li class="ff-rx-key-${k}"><i aria-hidden="true"></i>${esc(f.label)} <b>${f.value}</b></li>`).join('');
   const max = Math.max(...h.breakdown.map(b => b.value));
   const causes = h.breakdown.map(b => `<li><span>${esc(b.label)}</span><div class="ff-rx-barcell">${hbar(100 * b.value / max, 'ff-rx-h', `${b.label}: ${b.value} records`)}</div><b>${b.value}</b></li>`).join('');
-  return `<figure class="ff-rx-chart" aria-labelledby="ff-rx-q-cap">
+  return `<figure class="ff-rx-chart" aria-labelledby="ff-rx-q-cap" data-rx-finding="${ids.join(' ')}">
         <figcaption id="ff-rx-q-cap"><strong>Evidence qualification</strong> ${total.value} target-grade sale records${cx.chip(total)}</figcaption>
         <div class="ff-rx-stack"><svg class="ff-rx-svgbar ff-rx-svgstack" viewBox="0 0 100 18" preserveAspectRatio="none" role="img" aria-label="${esc(`${q.value} qualified, ${h.value} held, ${r.value} rejected, of ${total.value}`)}"><defs><pattern id="ff-rx-hatch" width="2" height="2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="1" height="2" class="ff-rx-hatchline"></rect></pattern></defs>${parts}</svg></div>
         <ul class="ff-rx-keys">${legend}</ul>
@@ -260,7 +260,7 @@ function diagnosticChart(cx) {
     .sort((a, b) => a.diff - b.diff);
   const max = Math.max(...rows.map(r => r.diff));
   const bars = rows.map(r => `<li><span>${esc(r.card)}</span><div class="ff-rx-barcell">${hbar(100 * r.diff / max, 'ff-rx-q', `FlipForge ${wholeMoney(r.ff)} vs reference ${wholeMoney(r.ref)}: ${pct(r.diff)}`)}</div><b>${pct(r.diff)}</b></li>`).join('');
-  return `<figure class="ff-rx-chart" aria-labelledby="ff-rx-d-cap">
+  return `<figure class="ff-rx-chart" aria-labelledby="ff-rx-d-cap" data-rx-finding="${esc(f.id)}">
         <figcaption id="ff-rx-d-cap"><strong>Diagnostic valuation difference</strong> FlipForge value vs a licensed provider’s qualified median, ${f.cards.length} cards. Median ${esc(f.display)}${cx.chip(f)}</figcaption>
         <ul class="ff-rx-hbars">${bars}</ul>
         <p class="ff-rx-chart-note">A diagnostic, not valuation accuracy: neither value is an independently verified later outcome.</p>
@@ -288,7 +288,7 @@ function economicsChart(cx) {
     return `<li class="${neg ? 'ff-rx-neg' : 'ff-rx-pos'}"><span>${esc(r.card)}<em>Ask ${money(r.ask)} · ${esc(r.verdict)}</em></span><div class="ff-rx-barcell">${hbar(w, neg ? 'ff-rx-loss' : 'ff-rx-q', `Modeled net proceeds ${money(r.net)} vs ask ${money(r.ask)}: ${label}`, {offset: neg ? 50 - w : 50})}<i class="ff-rx-zero" aria-hidden="true"></i></div><b>${label}</b></li>`;
   }).join('');
   const feePct = Math.round(f.assumptions.feeRate * 100);
-  return `<figure class="ff-rx-chart" aria-labelledby="ff-rx-e-cap">
+  return `<figure class="ff-rx-chart" aria-labelledby="ff-rx-e-cap" data-rx-finding="${esc(f.id)}">
         <figcaption id="ff-rx-e-cap"><strong>Apparent bargains, after costs</strong> ${esc(f.display)} modeled as unprofitable at their asking price${cx.chip(f)}</figcaption>
         <ul class="ff-rx-hbars ff-rx-diverge">${bars}</ul>
         <p class="ff-rx-chart-note">Modeled with FlipForge’s own value as the resale price, ${feePct}% fees and ${money(f.assumptions.fulfilmentUsd)} fulfilment. Selected listings; not an avoided-loss rate. None received BUY.</p>
@@ -305,7 +305,7 @@ function dashboard(cx) {
   const metrics = [...order.filter(id => cx.can(id) && id !== 'independent-outcomes-measured').map(cx.get), ...extras];
   if (!metrics.length) return '';
   const verified = cx.get('independent-outcomes-measured');
-  const rows = [...metrics, verified].map(f => `          <tr data-rx-class="${esc(f.classification)}"><th scope="row">${esc(f.label)}${cx.chip(f)}</th><td>${esc(f.display)}</td><td><span class="ff-rx-class">${esc(cx.label(f.classification))}</span></td><td>${esc(f.sample)}</td></tr>`).join('\n');
+  const rows = [...metrics, verified].map(f => `          <tr data-rx-class="${esc(f.classification)}" data-rx-finding="${esc(f.id)}"><th scope="row">${esc(f.label)}${cx.chip(f)}</th><td>${esc(f.display)}</td><td><span class="ff-rx-class">${esc(cx.label(f.classification))}</span></td><td>${esc(f.sample)}</td></tr>`).join('\n');
   const unreconciled = cx.preview ? cx.data.findings.filter(f => f.publication.status === 'UNRECONCILED') : [];
   const recon = unreconciled.length ? `
       <div class="ff-rx-recon" role="note">
@@ -354,7 +354,7 @@ function accountability(cx) {
       <ol class="ff-rx-timeline">
 ${steps}
       </ol>
-      <p class="ff-rx-method"><strong>${esc(verified.label)}: ${esc(verified.display)}.</strong> ${esc(a.rule)}</p>
+      <p class="ff-rx-method" data-rx-finding="${esc(verified.id)}"><strong>${esc(verified.label)}: ${esc(verified.display)}.</strong> ${esc(a.rule)}</p>
     </div>
   </section>`;
 }
@@ -367,7 +367,7 @@ function files(cx) {
   };
   const list = cx.data.decisionFiles.filter(fileOk);
   if (!list.length) return '';
-  const cards = list.map(f => `        <article class="ff-rx-file" data-rx-file="${esc(f.number)}">
+  const cards = list.map(f => `        <article class="ff-rx-file" data-rx-file="${esc(f.number)}" data-rx-finding="${esc(f.findings.join(' '))}"${f.caseStudy ? ` data-rx-case="${esc(f.caseStudy)}"` : ''}>
           <p class="ff-rx-file-n">Decision File ${esc(f.number)}${cx.preview && !approved(f) ? ' <span class="ff-rx-chip">Preview · not approved</span>' : ''}</p>
           <h3>${esc(f.title)}</h3>
           <p>${esc(f.summary)}</p>

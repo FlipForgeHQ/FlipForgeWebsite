@@ -72,16 +72,27 @@ const expected = render(data, {preview: false});
 check('P02 the public pages are exactly the public render of the source (no hand edits)',
   block(home, 'home-lead').includes(expected.homeLead) && block(proof, 'proof').includes(expected.proofResearch)
   && (expected.homeAdvantage === '' || block(home, 'home-advantage').includes(expected.homeAdvantage)));
-const hidden = data.findings.filter(x => !approved(x));
-const leaked = hidden.filter(x => x.unit !== 'count' || x.value >= 100).filter(x => pub.includes(x.display));
-check('P03 no unapproved finding is shown on a public page', leaked.length === 0, leaked.map(x => x.id).join(', '));
-check('P04 unapproved findings with small counts are not shown either (labels absent)', hidden.every(x => !pub.includes(x.label)));
+// Publication is checked by identity: every finding and case the generator rendered on a public page is tagged
+// (data-rx-finding / data-rx-case) and must be approved. A number that merely appears inside an approved finding's own
+// text (for example "Of 575 records") is not a publication of another finding.
+const renderedIds = attr => [...pub.matchAll(new RegExp(`${attr}="([^"]*)"`, 'g'))].flatMap(m => m[1].split(/\s+/)).filter(Boolean);
+const shownFindings = renderedIds('data-rx-finding');
+const shownCases = renderedIds('data-rx-case');
+const unapprovedShown = [...shownFindings.filter(id => !approved(f(id))), ...shownCases.filter(id => !approved(data.caseStudies.find(c => c.id === id)))];
+check('P03 every finding and case rendered on a public page is approved', unapprovedShown.length === 0, unapprovedShown.join(', '));
+const preview4 = render(data, {preview: true});
+const previewTagged = (preview4.homeLead + preview4.homeAdvantage + preview4.proofResearch).match(/data-rx-finding="[^"]*"/g) || [];
+check('P04 every rendered statistic, row, chart and file carries its finding identity (so P03 sees all of it)',
+  previewTagged.length >= 15 && !/<li class="ff-rx-stat"><strong>[^<]*<span class="ff-rx-num"/.test(preview4.homeLead + preview4.homeAdvantage)
+  && (preview4.proofResearch.match(/<tr data-rx-class="[^"]*" data-rx-finding=/g) || []).length === (preview4.proofResearch.match(/<tr data-rx-class=/g) || []).length);
 check('P05 the case study is public only when approved', approved(data.caseStudies[0]) || !pub.includes(data.caseStudies[0].title));
 check('P06 no "preview" marker ever reaches a public page', !/Preview · not approved|data-rx-preview|INTERNAL PREVIEW/.test(home + proof));
 check('P07 UNRECONCILED and WITHDRAWN figures never appear, public or preview', data.findings
   .filter(x => ['UNRECONCILED', 'WITHDRAWN'].includes(x.publication.status))
   .every(x => !pub.includes(x.display) && !render(data, {preview: true}).homeLead.includes(x.display)));
-const hciUsed = data.findings.filter(x => approved(x) && data.sources.find(s => s.id === x.source).provider === 'Hobby Card Index');
+const hciSource = id => (data.sources.find(s => s.id === id) || {}).provider === 'Hobby Card Index';
+const hciUsed = [...data.findings.filter(x => approved(x) && hciSource(x.source)),
+  ...data.caseStudies.filter(c => approved(c) && (c.sources || []).some(hciSource))];
 check('P08 the licensed provider is named on public pages only beside an approved figure of its own', hciUsed.length > 0 || !pub.includes('Hobby Card Index'));
 check('P09 an approved provider-derived figure carries its required attribution', hciUsed.length === 0 || pub.includes('Prices from Hobby Card Index'));
 check('P10 an approval needs an approver, a date and no open blocker', data.findings.filter(x => x.publication.status === 'APPROVED')
@@ -100,6 +111,18 @@ future.findings.push({id: 'synthetic-d7-outcome-check', label: 'SYNTHETIC CHECK:
   display: '12', classification: 'INDEPENDENTLY_VERIFIED_OUTCOME', source: data.sources[0].id, sample: 'validation fixture', method: 'fixture',
   limitations: [], publication: {status: 'APPROVED', blockers: [], approvedBy: 'validation fixture', approvedOn: '2026-11-25'}});
 const futureProof = render(future, {preview: false}).proofResearch;
+const approve = item => Object.assign(item.publication, {status: 'APPROVED', blockers: [], approvedBy: 'validation fixture', approvedOn: '2026-11-25'});
+const oneApproved = JSON.parse(JSON.stringify(data));
+approve(oneApproved.findings.find(x => x.id === 'records-qualified'));
+const oneOut = render(oneApproved, {preview: false});
+const oneIds = [...(oneOut.homeLead + oneOut.homeAdvantage + oneOut.proofResearch).matchAll(/data-rx-finding="([^"]*)"/g)].flatMap(m => m[1].split(/\s+/));
+check('P17 approving one finding publishes it alone (other findings in its text are not counted as published)',
+  oneIds.includes('records-qualified') && oneIds.every(id => id === 'records-qualified' || approved(oneApproved.findings.find(x => x.id === id))));
+const caseOnly = JSON.parse(JSON.stringify(data));
+approve(caseOnly.caseStudies[0]);
+const caseOut = render(caseOnly, {preview: false}).homeLead;
+check('P18 an approved provider-derived case study renders with its required credit',
+  caseOut.includes('data-rx-case="ohtani-280-bargain"') && caseOut.includes('Prices from Hobby Card Index'));
 check('P15 a newly approved outcome added only to the source is published in the research center (no code change)',
   futureProof.includes('SYNTHETIC CHECK: D7 independently verified outcomes') && futureProof.includes('id="decision-advantage"'));
 check('P16 the chart tooltip, mounted outside the research sections, has literal opaque colours',
