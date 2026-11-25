@@ -200,7 +200,7 @@ ${rows}
 function outcomeStatement(cx) {
   const v = cx.get('independent-outcomes-measured');
   if (!approved(v) || v.value === 0) return 'Independently verified purchasing outcomes: validation pending.';
-  const measured = cx.data.accountability.horizons.filter(h => h.key !== 'D0' && h.status !== 'PENDING').map(h => h.label);
+  const measured = cx.data.accountability.horizons.filter(h => h.key !== 'D0' && h.status === 'MEASURED').map(h => h.label);
   return `Independently verified purchasing outcomes: ${v.display}${measured.length ? ` (${measured.join(', ')})` : ''}. See Decision Proof for each horizon.`;
 }
 

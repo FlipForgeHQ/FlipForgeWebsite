@@ -149,7 +149,9 @@ const horizonsHonest = d => {
   const later = d.accountability.horizons.filter(x => x.key !== 'D0');
   const count = d.findings.find(x => x.id === 'independent-outcomes-measured').value;
   const pendingLabelled = later.every(x => x.status !== 'PENDING' || x.statusText === 'Validation pending');
-  const anyMeasured = later.some(x => x.status !== 'PENDING');
+  // Only MEASURED is independently verified; PROVIDER_REPORTED horizons may be published with a zero verified count.
+  const anyMeasured = later.some(x => x.status === 'MEASURED');
+  if (later.some(x => !['PENDING', 'MEASURED', 'PROVIDER_REPORTED'].includes(x.status))) return false;
   return pendingLabelled && (count === 0 ? !anyMeasured : anyMeasured);
 };
 const measuredFixture = JSON.parse(JSON.stringify(data));
@@ -161,6 +163,11 @@ Object.assign(contradiction.findings.find(x => x.id === 'independent-outcomes-me
 // Built explicitly (not inherited from the live data): every follow-up horizon pending, yet a positive count.
 contradiction.accountability.horizons.filter(x => x.key !== 'D0').forEach(x => Object.assign(x, {status: 'PENDING', statusText: 'Validation pending'}));
 check('H05 pending horizons say validation is pending, and the verified-outcome count agrees with the horizons', horizonsHonest(data));
+const providerFixture = JSON.parse(JSON.stringify(data));
+Object.assign(providerFixture.findings.find(x => x.id === 'independent-outcomes-measured'), {value: 0, display: '0'});
+providerFixture.accountability.horizons.filter(x => x.key !== 'D0').forEach(x => Object.assign(x, {status: 'PENDING', statusText: 'Validation pending'}));
+Object.assign(providerFixture.accountability.horizons.find(x => x.key === 'D7'), {status: 'PROVIDER_REPORTED', statusText: 'Provider-reported, not independently verified'});
+check('H05c provider-reported horizons may be published with zero independently verified outcomes', horizonsHonest(providerFixture));
 check('H05b real outcomes can be published from the source alone, and a count with every horizon pending is refused',
   horizonsHonest(measuredFixture) && !horizonsHonest(contradiction));
 // Fixtures are built explicitly, never inherited from the live data, so the checks hold however the data moves on.

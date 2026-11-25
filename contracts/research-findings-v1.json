@@ -1,9 +1,10 @@
 {
   "schema": "flipforge-research-findings-v1",
-  "version": "2026-11-25.1",
+  "version": "2026-11-25.2",
   "asOf": "2026-11-25",
   "servedPath": "never served: /contracts/* answers 404 (netlify/modern-functions/internal-path-guard.mjs)",
   "purpose": "The one source for every research figure on the website. scripts/build-research-sections.mjs renders the homepage and Decision Proof blocks from this file; nothing else may hard-code a research statistic.",
+  "removedFigures": "Two requested figures (a four-listing modeled loss and a capital-exposure percentage) could not be traced to any FlipForge record and were removed by founder decision on 2026-11-25. The supported equivalent is the finding modeled-losses-three.",
   "publicationRule": "Public pages render a finding only when publication.status is APPROVED and every blocker is cleared. Everything else renders only in the local internal preview (research-preview/: git-ignored, 404 when served, stripped from the publish directory).",
   "synchronization": {
     "backendIssue": "https://github.com/FlipForgeHQ/FlipForge2/issues/1024",
@@ -26,7 +27,7 @@
   "publicationStatuses": {
     "APPROVED": "Founder-approved and every rights blocker cleared. May render on public pages.",
     "INTERNAL_PREVIEW": "Reconciled to its source, but not approved for publication. Preview only.",
-    "UNRECONCILED": "The figure could not be traced to a FlipForge record. Never rendered as a finding; the internal preview names it only in its reconciliation note.",
+    "UNRECONCILED": "The figure could not be traced to a FlipForge record. It is not kept in this file and never rendered.",
     "WITHDRAWN": "Previously published and withdrawn. Never rendered."
   },
   "sources": [
@@ -201,28 +202,6 @@
       "method": "Sum of (asking price - modeled net proceeds) for the listings with negative modeled proceeds, same assumptions.",
       "limitations": ["Modeled, not realized", "Selected listings", "The engine's own value is the price input"],
       "publication": {"status": "INTERNAL_PREVIEW", "blockers": ["Founder publication approval", "Issue #1024 review (not an avoided-loss rate)"], "approvedBy": null, "approvedOn": null}
-    },
-    {
-      "id": "directive-modeled-losses-378",
-      "label": "Modeled losses across four selected listings (as requested)",
-      "value": 378.68, "unit": "usd", "display": "$378.68",
-      "classification": "MODELED_ECONOMIC",
-      "source": "issue-1024-initial-analysis",
-      "sample": "Not traceable",
-      "method": "Not found in any FlipForge record. With the stated assumptions (13% fees, $5 fulfilment) the four Nov 20 listings give $117.59 on the three unprofitable ones, or $275.02 if the Ohtani listing is measured against the newer $911 reference instead.",
-      "limitations": ["Source calculation needed before any use"],
-      "publication": {"status": "UNRECONCILED", "blockers": ["Founder to supply the calculation and its inputs"], "approvedBy": null, "approvedOn": null}
-    },
-    {
-      "id": "directive-capital-exposure-19",
-      "label": "Modeled capital loss exposure (as requested)",
-      "value": 19.03, "unit": "percent", "display": "19.03%",
-      "classification": "MODELED_ECONOMIC",
-      "source": "issue-1024-initial-analysis",
-      "sample": "Not traceable",
-      "method": "Not found in any FlipForge record. The reconciled equivalent is $117.59 of modeled losses on $951.43 of asking prices (12.36%).",
-      "limitations": ["Source calculation needed before any use"],
-      "publication": {"status": "UNRECONCILED", "blockers": ["Founder to supply the calculation and its inputs"], "approvedBy": null, "approvedOn": null}
     },
     {
       "id": "independent-outcomes-measured",
