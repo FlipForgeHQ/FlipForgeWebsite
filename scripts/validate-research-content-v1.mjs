@@ -35,7 +35,9 @@ check('R04 every classification and publication status is a known one', data.fin
 check('R05 every finding names a recorded source', data.findings.every(x => data.sources.some(s => s.id === x.source)));
 check('R06 ids are unique', new Set(data.findings.map(x => x.id)).size === data.findings.length);
 check('R07 the source is never served (/contracts/* answers 404)', read('netlify/modern-functions/internal-path-guard.mjs').includes('"/contracts/*"'));
-check('R08 the internal preview folder is git-ignored', read('.gitignore').split(/\r?\n/).includes('marketing-preview/'));
+check('R08 the internal preview folder is git-ignored, answers 404 and is stripped from the publish directory', read('.gitignore').split(/\r?\n/).includes('research-preview/')
+  && read('netlify/modern-functions/internal-path-guard.mjs').includes('"/research-preview/*"') && read('scripts/strip-internal-from-publish.mjs').includes('"research-preview"'));
+check('R09 the research preview never writes into the published marketing preview', !read('scripts/build-research-sections.mjs').includes("'marketing-preview'"));
 
 // ---- A: arithmetic, recomputed ---------------------------------------------------------------------------------------
 const [ex, q, h, r] = ['records-examined', 'records-qualified', 'records-held', 'records-rejected'].map(id => f(id).value);

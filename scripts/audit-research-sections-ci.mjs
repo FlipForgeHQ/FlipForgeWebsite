@@ -8,6 +8,7 @@
 //   RX6  research events reach the existing ff:conversion channel with allow-listed placements only
 //   RX7  public pages never show a preview marker; the preview always does
 //   RX8  focus is visible on the case-study disclosure and chart marks (keyboard reachable)
+//   RX10 preview research links stay inside the preview; public links never point into it
 //   RX9  writes screenshots to output/research-sections/ when FLIPFORGE_RX_SHOTS=1
 import {spawn} from 'node:child_process';
 import fs from 'node:fs';
@@ -23,7 +24,7 @@ const check = (name, ok, detail = '') => {
   if (ok) { passed += 1; console.log(`PASS ${name}`); } else { failures.push(`${name}${detail ? ` [${detail}]` : ''}`); console.log(`FAIL ${name}`); }
 };
 
-if (!fs.existsSync('marketing-preview/index.html')) {
+if (!fs.existsSync('research-preview/index.html')) {
   await new Promise((res, rej) => spawn(process.execPath, ['scripts/build-research-sections.mjs', '--preview'], {stdio: 'inherit'})
     .on('exit', c => c === 0 ? res() : rej(new Error('preview build failed'))));
 }
@@ -36,7 +37,7 @@ try {
   if (SHOTS) fs.mkdirSync('output/research-sections', {recursive: true});
   const pages = [
     ['public', 'home', '/index.html'], ['public', 'proof', '/decision-proof.html'],
-    ['preview', 'home', '/marketing-preview/index.html'], ['preview', 'proof', '/marketing-preview/decision-proof.html']
+    ['preview', 'home', '/research-preview/index.html'], ['preview', 'proof', '/research-preview/decision-proof.html']
   ];
   for (const [mode, name, url] of pages) {
     for (const [device, viewport] of [['desktop', {width: 1440, height: 900}], ['phone', {width: 390, height: 844}]]) {
@@ -90,6 +91,9 @@ try {
       check(`RX6 ${tag}: research events use allow-listed placements`, research.length > 0 && research.every(e => placement.test(e.placement)),
         JSON.stringify(research.slice(0, 4)));
       check(`RX7 ${tag}: preview markers ${mode === 'preview' ? 'present' : 'absent'}`, info.preview === (mode === 'preview'));
+      const proofLinks = await page.evaluate(() => [...document.querySelectorAll('a[data-rx-proof-link]')].map(a => a.href));
+      check(`RX10 ${tag}: Decision Proof links stay ${mode === 'preview' ? 'inside the preview' : 'on the public site'}`, proofLinks.every(h =>
+        mode === 'preview' ? h.includes('/research-preview/decision-proof.html') : !h.includes('research-preview')), proofLinks.join(' '));
       const focusable = await page.$(mode === 'preview' && name === 'proof' ? '.ff-rx-hit' : (disclosure ? '[data-rx-case-math] summary' : '.ff-rx-link'));
       if (focusable) {
         // Reach it by keyboard (a mouse click earlier on the page must not decide focus visibility).

@@ -21,7 +21,7 @@ file is never served: `/contracts/*` answers 404.
 - `approvedBy` and `approvedOn` are set.
 
 Everything else appears only in the internal preview. `node scripts/build-research-sections.mjs --preview` writes
-`marketing-preview/`, which is git-ignored and never deployed.
+`research-preview/`. That folder is git-ignored, answers 404 if served, and is removed from the publish directory.
 
 **Unreconciled figures.** A figure that cannot be traced to a FlipForge record is `UNRECONCILED`. It never appears as a
 finding. The preview names it only in the reconciliation note.

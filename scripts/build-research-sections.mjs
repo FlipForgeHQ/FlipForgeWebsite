@@ -4,10 +4,12 @@
 //                                                       decision-proof.html. Only APPROVED findings with no open
 //                                                       blocker appear; everything else is left out.
 //   node scripts/build-research-sections.mjs --check    fails when either page has drifted from the source.
-//   node scripts/build-research-sections.mjs --preview  internal preview: writes marketing-preview/index.html and
-//                                                       marketing-preview/decision-proof.html with every reconciled
+//   node scripts/build-research-sections.mjs --preview  internal preview: writes research-preview/index.html and
+//                                                       research-preview/decision-proof.html with every reconciled
 //                                                       finding, each marked with its publication status. The folder
-//                                                       is git-ignored and never deployed.
+//                                                       is git-ignored, answers 404 (internal-path-guard) and is
+//                                                       removed from the publish directory (strip-internal-from-publish).
+//                                                       Its own research links stay inside the preview.
 //
 // Nothing else on the site may hard-code a research statistic: change the JSON, then rebuild.
 import fs from 'node:fs';
@@ -16,7 +18,7 @@ import path from 'node:path';
 const SOURCE = 'contracts/research-findings-v1.json';
 const HOME = 'index.html';
 const PROOF = 'decision-proof.html';
-const PREVIEW_DIR = 'marketing-preview';
+const PREVIEW_DIR = 'research-preview';
 const BLOCKS = {
   homeLead: ['<!-- ff-research:home-lead:start (generated from contracts/research-findings-v1.json by scripts/build-research-sections.mjs; edit the JSON, not this block) -->', '<!-- ff-research:home-lead:end -->'],
   homeAdvantage: ['<!-- ff-research:home-advantage:start (generated from contracts/research-findings-v1.json by scripts/build-research-sections.mjs; edit the JSON, not this block) -->', '<!-- ff-research:home-advantage:end -->'],
@@ -412,7 +414,11 @@ function pages(data, preview) {
 
 function previewWrap(html, data) {
   const banner = `<div class="ff-rx-preview-banner" role="note"><strong>INTERNAL PREVIEW</strong> Research content v${esc(data.version)} · not approved for publication · never deployed</div>`;
+  // Assets resolve from the site root (<base href="/">); Decision Proof links stay inside the preview so the research
+  // journey can be followed end to end.
   return html
+    .replace(/href="(?:\/)?decision-proof\.html/g, `href="${PREVIEW_DIR}/decision-proof.html`)
+    .replace(/href="index\.html(#[^"]*)?"/g, (m, hash) => `href="${PREVIEW_DIR}/index.html${hash || ''}"`)
     .replace('<head>', '<head>\n<base href="/">\n<meta name="robots" content="noindex,nofollow">')
     .replace(/<body([^>]*)>/, (m, attrs) => `<body${attrs} data-rx-preview>\n${banner}`);
 }
@@ -426,7 +432,7 @@ if (isMain) {
     fs.mkdirSync(PREVIEW_DIR, {recursive: true});
     fs.writeFileSync(path.join(PREVIEW_DIR, 'index.html'), previewWrap(home, data));
     fs.writeFileSync(path.join(PREVIEW_DIR, 'decision-proof.html'), previewWrap(proof, data));
-    console.log(`research preview written to ${PREVIEW_DIR}/ (git-ignored; never deployed)`);
+    console.log(`research preview written to ${PREVIEW_DIR}/ (git-ignored, 404 when served, stripped from the publish directory)`);
   } else {
     const {home, proof} = pages(data, false);
     if (args.has('--check')) {

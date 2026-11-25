@@ -25,7 +25,7 @@ const remove = rel => {
   removed.push(rel);
 };
 
-for (const dir of ["docs", "deploy-triggers", "legal"]) remove(dir);
+for (const dir of ["docs", "deploy-triggers", "legal", "research-preview"]) remove(dir);
 for (const name of fs.readdirSync(root)) {
   if (/\.md$/i.test(name)) remove(name);
   else if (/^(deploy|force|trigger)[-\w.]*\.txt$/i.test(name)) remove(name);

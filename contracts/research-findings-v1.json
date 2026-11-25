@@ -4,7 +4,7 @@
   "asOf": "2026-11-25",
   "servedPath": "never served: /contracts/* answers 404 (netlify/modern-functions/internal-path-guard.mjs)",
   "purpose": "The one source for every research figure on the website. scripts/build-research-sections.mjs renders the homepage and Decision Proof blocks from this file; nothing else may hard-code a research statistic.",
-  "publicationRule": "Public pages render a finding only when publication.status is APPROVED and every blocker is cleared. Everything else renders only in the local internal preview (marketing-preview/, git-ignored, never deployed).",
+  "publicationRule": "Public pages render a finding only when publication.status is APPROVED and every blocker is cleared. Everything else renders only in the local internal preview (research-preview/: git-ignored, 404 when served, stripped from the publish directory).",
   "synchronization": {
     "backendIssue": "https://github.com/FlipForgeHQ/FlipForge2/issues/1024",
     "relatedPullRequests": [
