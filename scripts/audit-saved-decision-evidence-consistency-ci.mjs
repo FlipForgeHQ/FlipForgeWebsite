@@ -132,6 +132,21 @@ const envelope = (correlationId, data) => ({
 const lifecycle = id => ({ opportunityId: id, trackingStatus: "WATCHING", outcomeStatus: "NONE", reviewAt: null, alertEnabled: false,
   acquisitionCostCents: null, acquiredAt: null, dispositionProceedsCents: null, disposedAt: null, version: 1 });
 
+// The saved-decision section renders after the page shell (its data arrives separately). Wait until either the
+// expected or the forbidden wording is present, so the assertion that follows judges the rendered result, not a
+// half-loaded page. A timeout is not a pass: the check still runs on whatever text is there.
+async function diagnostics(page, text) {
+  const dom = await page.evaluate(() => {
+    const p = document.querySelector("#main-content .customer-management-page");
+    return { hash: location.hash, dataset: p ? { ...p.dataset } : null, metrics: Boolean(document.querySelector("#main-content .customer-management-metrics")),
+      metricsText: document.querySelector("#main-content .customer-management-metrics")?.textContent.replace(/\s+/g, " ").trim().slice(0, 160) || "",
+      split: document.querySelector("#main-content .customer-management-page")?.dataset.ffEvidenceAuthoritySplit || "",
+      hidden: document.hidden, visibility: document.visibilityState,
+      empty: Boolean(document.querySelector("#main-content .staging-empty")), error: document.querySelector("#main-content .staging-error, #main-content [role=alert]")?.textContent.trim().slice(0, 200) || "" };
+  }).catch(e => ({ unreadable: String(e).slice(0, 120) }));
+  return `${text.slice(0, 2500)} || dom=${JSON.stringify(dom)} || pageerrors=${JSON.stringify(page.__ffErrors || [])} || trace=${(page.__ffTrace || []).join(" ; ")}`;
+}
+
 async function fixture(route) {
   const url = new URL(route.request().url());
   const cid = route.request().headers()["x-correlation-id"] || "saved-decisions-audit";
@@ -166,8 +181,21 @@ async function fixture(route) {
 // ---------- session ----------
 const browser = await chromium.launch({ executablePath, args: ["--host-resolver-rules=MAP goflipforge.com 127.0.0.1"] });
 const PHONE = { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 };
-async function open(base, route, { device = null, wait = 4500 } = {}) {
+async function open(base, route, { device = null, wait = 4500, relabelFirst = false } = {}) {
   const context = await browser.newContext(device || { viewport: { width: 1440, height: 900 } });
+  // E3R: force the layer order that hosted runners hit intermittently. A presentation layer
+  // (beta-qa-customer-polish-v1.js / evidence-final-polish-v1.js) renames the metric labels before
+  // decision-authority-consistency-v1.js reads them. A MutationObserver callback is a microtask, so it always runs
+  // before the layers' requestAnimationFrame callbacks: this order is deterministic, not timed.
+  if (relabelFirst) await context.addInitScript(() => {
+    const rename = { "Accepted exact sales": "Current eligible exact sales", "Manual candidates": "Review candidates" };
+    new MutationObserver(() => {
+      for (const span of document.querySelectorAll(".customer-management-metrics article > span")) {
+        const to = rename[String(span.textContent || "").trim()];
+        if (to) span.textContent = to;
+      }
+    }).observe(document, { childList: true, subtree: true });
+  });
   await context.addInitScript(() => { try { localStorage.setItem("flipforge.privateBeta.onboarding.v1", "complete"); localStorage.setItem("flipforge.guidedMode.enabled", "false"); } catch (_) {} });
   await context.route(/\/assets\/js\/flipforge-identity\.js/, r => r.fulfill({ status: 200, contentType: "text/javascript",
     body: `window.FlipForgeIdentity=Object.freeze({getUser:()=>({email:"${email}"}),getSnapshot:()=>({authenticated:true,email:"${email}",fullName:"Saved Decisions Audit",membershipActive:true,membershipConfigured:true}),signOut:async()=>{},refresh:async()=>({authenticated:true,membershipActive:true,email:"${email}"}),noteServerMembership:()=>({authenticated:true,membershipActive:true}),getAccessToken:async()=>"t"});` }));
@@ -176,6 +204,15 @@ async function open(base, route, { device = null, wait = 4500 } = {}) {
   const page = await context.newPage();
   const errors = [];
   page.on("pageerror", e => errors.push(e.message.slice(0, 160)));
+  // Diagnostics only (E3 fails intermittently on hosted runners): what the browser asked for, got and logged.
+  const trace = [];
+  page.on("request", r => { if (r.url().includes("/api/v1/")) trace.push(`req ${new URL(r.url()).pathname}`); });
+  page.on("response", r => { if (r.url().includes("/api/v1/")) trace.push(`res ${r.status()} ${new URL(r.url()).pathname}`); });
+  page.on("requestfailed", r => trace.push(`failed ${new URL(r.url()).pathname} ${r.failure()?.errorText || ""}`));
+  page.on("console", m => { if (m.type() === "error" || m.type() === "warning") trace.push(`console.${m.type()} ${m.text().slice(0, 160)}`); });
+  page.on("framenavigated", f => { if (f === page.mainFrame()) trace.push(`nav ${new URL(f.url()).hash}`); });
+  page.__ffTrace = trace;
+  page.__ffErrors = errors; // uncaught exceptions (e.g. in an animation-frame layer) arrive here, not as console messages
   await page.goto(`${base}#/${route}`, { waitUntil: "load" });
   await page.waitForTimeout(wait);
   await page.evaluate(() => document.querySelectorAll("#main-content details").forEach(d => { d.open = true; }));
@@ -252,7 +289,7 @@ try {
       const text = await all(s.page);
       check(`E3 ${label} evidence page: saved BUY on 8 sales is not headed "No sales support this decision yet"`,
         /Evidence behind this saved decision/.test(text) && /8 exact completed sales supported this decision when it was made\./.test(text)
-        && !/No sales support this decision yet|No exact completed sales support this card yet/.test(text));
+        && !/No sales support this decision yet|No exact completed sales support this card yet/.test(text), await diagnostics(s.page, text));
       check(`E8 ${label} evidence page: accurate evidence availability wording`,
         !OVERCLAIM.test(text) && !/Sale records aren't kept/i.test(text) && /may have no sales of this exact card/.test(text), (text.match(OVERCLAIM) || [""])[0]);
       check(`E3 ${label} evidence page: decision date readable`, /Decision saved\s*Oct 8, 2026/.test(text) && !/2026-10-08/.test(text));
@@ -260,13 +297,25 @@ try {
       const u = await open(BETA, "evidence/qa-sd-unknown", { device });
       await u.page.waitForSelector('[data-ff-evidence-authority-split="true"]', { timeout: 20000 }).catch(() => {}); // a cold first load can exceed the fixed wait
       const utext = await all(u.page);
-      check(`E3 ${label} evidence page: unrecorded count says so, never "No sales support"`, /did not record how many exact sales it used/.test(utext) && !/No sales support this decision yet/.test(utext));
+      check(`E3 ${label} evidence page: unrecorded count says so, never "No sales support"`, /did not record how many exact sales it used/.test(utext) && !/No sales support this decision yet/.test(utext), await diagnostics(u.page, utext));
       await u.context.close();
       const l = await open(BETA, "evidence/qa-sd-legacy", { device });
       await l.page.waitForSelector('[data-ff-evidence-authority-split="true"]', { timeout: 20000 }).catch(() => {}); // a cold first load can exceed the fixed wait
       const ltext = await all(l.page);
       check(`E3 ${label} evidence page: legacy result keeps its own wording`, !/supported this decision when it was made/.test(ltext) && !PROVIDER.test(ltext));
       await l.context.close();
+      // E3R: the same saved BUY when the metric labels were renamed first (the intermittent hosted-runner order).
+      const r = await open(BETA, "evidence/qa-sd-known", { device, relabelFirst: true });
+      await r.page.waitForSelector('[data-ff-evidence-authority-split="true"]', { timeout: 20000 }).catch(() => {});
+      const rtext = await all(r.page);
+      const built = await r.page.evaluate(() => {
+        const p = document.querySelector("#main-content .customer-management-page");
+        return Boolean(p && p.dataset.ffEvidenceExperience === "v2" && p.dataset.ffEvidenceAuthoritySplit === "true");
+      });
+      check(`E3R ${label} evidence page: renamed metric labels do not stop the saved-decision view`,
+        built && /Evidence behind this saved decision/.test(rtext) && /8 exact completed sales supported this decision when it was made\./.test(rtext)
+        && !/No sales support this decision yet|No exact completed sales support this card yet/.test(rtext), await diagnostics(r.page, rtext));
+      await r.context.close();
     }
     // E7: Tracking timeline: a value of 0 cents is "Not established", never "$0.00".
     {

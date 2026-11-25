@@ -932,3 +932,16 @@
     white-space: nowrap;
   }
 }
+
+/* #1019 accountability record: the as-decided facts stay two to a row on a phone so the record reads as one block,
+   and each checkpoint's accountability status sits on its own line above its evidence streams. */
+.ff-otl [data-ff-acct-facts] { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+.ff-otl [data-ff-acct-facts] strong { overflow-wrap: anywhere; }
+.ff-otl-subhead { margin: 18px 0 6px; font-size: .95rem; }
+.ff-otl-accountability { display: grid; gap: 2px; margin: 8px 0; padding: 8px 10px; border-left: 3px solid var(--line, rgba(255, 255, 255, .18)); }
+.ff-otl-accountability small { color: var(--text-soft); }
+.ff-otl-accountability[data-ff-otl-measured="true"] { border-left-color: rgba(67, 174, 116, .7); }
+@media (max-width: 480px) {
+  .ff-otl [data-ff-acct-facts] { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .ff-otl [data-ff-acct-facts] > span { padding: 8px 10px; }
+}

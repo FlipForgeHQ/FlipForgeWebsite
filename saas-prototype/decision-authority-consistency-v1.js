@@ -112,10 +112,15 @@
     }
   }
 
+  // Metrics are found by the name the renderer gave them (data-ff-metric-label, customer-management.js), not only by
+  // the visible label: presentation layers rename the visible label ("Accepted exact sales" -> "Current eligible exact
+  // sales", "Manual candidates" -> "Review candidates"), and when one of them ran first this lookup used to miss, so
+  // the saved-decision Evidence view was never built (E3, intermittent on hosted runners).
   function metricValue(main, label) {
     for (const article of main?.querySelectorAll?.(".customer-management-metrics article") || []) {
       const span = article.querySelector("span");
-      if (String(span?.textContent || "").trim() !== label) continue;
+      const named = article.dataset?.ffMetricLabel;
+      if (named ? named !== label : String(span?.textContent || "").trim() !== label) continue;
       const value = Number.parseInt(String(article.querySelector("strong")?.textContent || ""), 10);
       return Number.isFinite(value) ? value : null;
     }

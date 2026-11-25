@@ -304,6 +304,43 @@
       ["boundary", "current_value_calculated", "false"],
       ["boundary", "performance_calculated", "false"]
     ];
+    // #1019: the accountability record exactly as the server built it (the JSON export carries it whole). Codes and
+    // counts only; a withheld or legacy value stays blank, as on every other surface.
+    const timeline = dossier?.payload?.customerLifecycle?.outcomeTimeline;
+    const record = timeline?.accountabilityRecord;
+    if (record && typeof record === "object" && record.kind === "decision-accountability-record" && record.saleLevelDataIncluded === false) {
+      const knew = record.whatFlipForgeKnew || {};
+      const value = knew.value || {};
+      const shown = ["SHOWN", "SHOWN_NO_MAX_BUY", "SHOWN_VERIFY_NO_LIMIT"].includes(value.status);
+      const why = record.whyThisDecision || {};
+      const consistency = why.consistency || {};
+      rows.push(
+        ["accountability", "record_version", record.version || ""],
+        ["accountability", "record_status", record.recordStatus || ""],
+        ["accountability", "receipt_sha256", record.receiptSha256 || ""],
+        ["accountability", "snapshot_sha256", record.snapshotSha256 || ""],
+        ["accountability", "decided_at", knew.decidedAt || ""],
+        ["accountability", "card_identity_as_decided", knew.cardIdentity || ""],
+        ["accountability", "exact_identity_basis", knew.identity?.basis || ""],
+        ["accountability", "listing_verification_status", knew.identity?.listingVerificationStatus || ""],
+        ["accountability", "decision_rules_version", knew.ruleVersions?.decisionRules || ""],
+        ["accountability", "profitability_policy_version", knew.ruleVersions?.profitabilityPolicy || ""],
+        ["accountability", "qualified_exact_sales", knew.evidence?.qualifiedExactSales ?? ""],
+        ["accountability", "evidence_source_basis", knew.evidence?.sourceBasis || ""],
+        ["accountability", "value_status", value.status || ""],
+        ["accountability", "supported_value_cents_as_decided", shown ? value.supportedValueCents ?? "" : ""],
+        ["accountability", "max_buy_cents_as_decided", shown ? value.maximumBuyPriceCents ?? "" : ""],
+        ["accountability", "reason_code", why.reasonCode || ""],
+        ["accountability", "consistent", consistency.consistent === true ? "true" : consistency.consistent === false ? "false" : ""],
+        ["accountability", "consistency_findings", safeArray(consistency.findings).map(f => f?.code).filter(Boolean).join(" ")],
+        ["accountability", "not_recorded", safeArray(record.notRecorded).join(" ")]
+      );
+      safeArray(timeline.checkpoints).forEach(c => {
+        const a = c?.accountability;
+        if (a && typeof a === "object") rows.push([`checkpoint_d${c.horizonDays}`, "accountability_status", `${a.status || ""} | measured ${a.measured === true} | recorded ${a.recorded === true}`]);
+      });
+      if (timeline.accountabilitySummary?.statement) rows.push(["accountability", "checkpoint_summary", timeline.accountabilitySummary.statement]);
+    }
     safeArray(dossier?.payload?.customerLifecycle?.history).forEach((event, index) => {
       rows.push([`lifecycle_history_${index + 1}`, "event", `${event.recordedAt || ""} | ${event.eventType || "UPDATED"} | ${event.trackingStatus || ""} | ${event.outcomeStatus || ""} | version ${event.recordVersion ?? ""}`]);
     });
