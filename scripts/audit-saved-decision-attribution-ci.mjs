@@ -7,7 +7,8 @@
 //       beside the supported value on the card page and in the Decision Receipt ("Price source").
 //   A2  The saved list shows the credit under that decision's supported value, and only there.
 //   A3  A decision without an attribution shows no credit anywhere (no provider is named for other evidence).
-//   A4  Anything other than the one approved credit (another text, another link, a javascript: link) is never rendered.
+//   A4  Anything other than the one approved credit (another text, another link, a javascript: link, an entry with no
+//       text, an inherited key such as toString, a non-string link) is never rendered: no link, no empty credit block.
 //   A5  Desktop and phone: no page errors, no sideways scroll.
 //
 // The production host is mapped to the local server (saas-prototype/serve.mjs, port 4173 or FLIPFORGE_SDT_AUDIT_PORT).
@@ -32,7 +33,8 @@ const CARDS = {
     attributions: [] },
   "qa-attr-hostile": { title: "2019 Panini Prizm Zion Williamson #248 PSA 10", recommendation: "WATCH", ask: 25, value: 2050, maxBuy: 1500, count: 9,
     attributions: [{ text: "Prices from Some Other Site", url: "https://example.com", required: true },
-      { text: CREDIT, url: "javascript:alert(1)", required: true }, { text: "<img src=x onerror=alert(1)>", url: CREDIT_URL }] }
+      { text: CREDIT, url: "javascript:alert(1)", required: true }, { text: "<img src=x onerror=alert(1)>", url: CREDIT_URL },
+      { url: "javascript:alert(2)" }, {}, { url: "toString" }, { url: "__proto__" }, { text: CREDIT, url: ["https://hobbycardindex.com"] }] }
 };
 const IDS = Object.keys(CARDS);
 
@@ -144,9 +146,11 @@ try {
         const s = await open(base, "opportunities/qa-attr-hostile", device);
         const t = await text(s.page);
         const html = await s.page.evaluate(() => document.querySelector("#main-content")?.innerHTML || "");
-        check(`A4 ${tag} unapproved credits are never rendered (other text, other link, javascript: link, markup)`,
-          (await links(s.page)).length === 0 && !/Some Other Site|example\.com/.test(t) && !/javascript:alert|onerror=/.test(html) && s.errors.length === 0,
-          s.errors.join(" | "));
+        const blocks = await s.page.evaluate(() => document.querySelectorAll("[data-ff-source-attribution]").length);
+        check(`A4 ${tag} unapproved credits are never rendered (other text, other link, javascript: link, missing text, inherited key, markup)`,
+          (await links(s.page)).length === 0 && blocks === 0 && !/Some Other Site|example\.com/.test(t)
+            && !/javascript:alert|onerror=|href="toString"|href="__proto__"/.test(html) && s.errors.length === 0,
+          `blocks=${blocks} ` + s.errors.join(" | "));
         await s.context.close();
       }
       {

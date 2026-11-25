@@ -139,7 +139,10 @@
   function savedAttributions(item) {
     const list = item?.governedDecision?.sourceAttributions;
     if (!Array.isArray(list)) return [];
-    return list.filter(a => a && typeof a === "object" && APPROVED_ATTRIBUTIONS[a.url] === a.text);
+    // Both fields must be strings, the link an own key of the allow-list, and the text exactly its approved credit; a
+    // missing text can never match (undefined === undefined) and inherited keys ("toString", "__proto__") never count.
+    return list.filter(a => a && typeof a === "object" && typeof a.url === "string" && typeof a.text === "string"
+      && Object.prototype.hasOwnProperty.call(APPROVED_ATTRIBUTIONS, a.url) && APPROVED_ATTRIBUTIONS[a.url] === a.text);
   }
   function attributionMarkup(item, compact = false) {
     const found = savedAttributions(item);
