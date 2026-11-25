@@ -116,8 +116,23 @@ check('H03 the case study is labelled a historical research case with a modeled 
   && previewAll.includes('Not a realized customer loss and not an independently verified checkpoint'));
 check('H04 synthetic validation is never presented as purchasing accuracy', data.classifications.SYNTHETIC_VALIDATION.includes('says nothing about market accuracy')
   && data.accountability.rule.includes('completed software testing is never shown as purchasing accuracy'));
-check('H05 accountability horizons without independent outcomes say validation is pending', data.accountability.horizons
-  .filter(x => x.key !== 'D0').every(x => x.status === 'PENDING' ? x.statusText === 'Validation pending' : true) && f('independent-outcomes-measured').value === 0);
+// Pending horizons say so; the verified-outcome count agrees with the horizons (zero only while every follow-up
+// horizon is pending, positive only when at least one horizon is measured). Real results need no code change.
+const horizonsHonest = d => {
+  const later = d.accountability.horizons.filter(x => x.key !== 'D0');
+  const count = d.findings.find(x => x.id === 'independent-outcomes-measured').value;
+  const pendingLabelled = later.every(x => x.status !== 'PENDING' || x.statusText === 'Validation pending');
+  const anyMeasured = later.some(x => x.status !== 'PENDING');
+  return pendingLabelled && (count === 0 ? !anyMeasured : anyMeasured);
+};
+const measuredFixture = JSON.parse(JSON.stringify(data));
+measuredFixture.findings.find(x => x.id === 'independent-outcomes-measured').value = 1;
+Object.assign(measuredFixture.accountability.horizons.find(x => x.key === 'D7'), {status: 'MEASURED', statusText: '1 independently verified outcome'});
+const contradiction = JSON.parse(JSON.stringify(data));
+contradiction.findings.find(x => x.id === 'independent-outcomes-measured').value = 3;
+check('H05 pending horizons say validation is pending, and the verified-outcome count agrees with the horizons', horizonsHonest(data));
+check('H05b real outcomes can be published from the source alone, and a count with every horizon pending is refused',
+  horizonsHonest(measuredFixture) && !horizonsHonest(contradiction));
 check('H06 Proof100 stays withdrawn and its figures stay off the pages', data.proof100.status === 'WITHDRAWN'
   && !/17\/17|42 measurable|58 unresolved|100 frozen decisions/.test(home + proof));
 check('H07 the comparison disclaims judging specific products', data.comparison.note.includes('not of any specific product'));
