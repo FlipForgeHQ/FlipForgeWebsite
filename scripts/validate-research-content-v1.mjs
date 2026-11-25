@@ -87,6 +87,12 @@ check('P09 an approved provider-derived figure carries its required attribution'
 check('P10 an approval needs an approver, a date and no open blocker', data.findings.filter(x => x.publication.status === 'APPROVED')
   .every(x => x.publication.approvedBy && x.publication.approvedOn && x.publication.blockers.length === 0));
 check('P11 the former listing-data provider is never named', !/card[\s_-]*sight/i.test(home + proof + JSON.stringify(data)));
+const anchors = [...pub.matchAll(/href="decision-proof\.html#([\w-]+)"/g)].map(m => m[1]);
+check('P13 every homepage link into Decision Proof lands on a section that exists on the public page', anchors.length > 0
+  && anchors.every(id => proof.includes(`id="${id}"`)), anchors.join(', '));
+const previewProof = render(data, {preview: true}).proofResearch;
+const previewAnchors = [...(render(data, {preview: true}).homeLead + render(data, {preview: true}).homeAdvantage).matchAll(/href="decision-proof\.html#([\w-]+)"/g)].map(m => m[1]);
+check('P14 in the preview, the same links land on sections the preview renders', previewAnchors.every(id => previewProof.includes(`id="${id}"`)), previewAnchors.join(', '));
 check('P12 the research pages carry no inline style attributes', !/<[^>]+\sstyle="/.test(home) && !/<[^>]+\sstyle="/.test(proof));
 
 // ---- H: honest labelling ---------------------------------------------------------------------------------------------

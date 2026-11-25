@@ -109,7 +109,7 @@ ${tiles}
   <div class="ff10-wrap">
 ${head}
 ${body}
-    <a class="ff-rx-link" href="decision-proof.html#decision-advantage" data-rx-proof-link="research-strip">See the research in Decision Proof <span aria-hidden="true">→</span></a>
+    <a class="ff-rx-link" href="decision-proof.html${cx.targets.research.anchor}" data-rx-proof-link="research-strip">${esc(cx.targets.research.text)} <span aria-hidden="true">→</span></a>
   </div>
 </section>`;
 }
@@ -168,7 +168,7 @@ ${c.limitations.map(l => `      <li>${esc(l)}</li>`).join('\n')}
     ${cx.attribution([{source: 'hci-pilot-2026-11-24'}])}
     <div class="ff10-actions ff-rx-actions">
       <a class="ff10-btn ff10-btn-black" href="beta-application.html">Request Beta Access</a>
-      <a class="ff10-btn ff10-btn-line-dark" href="decision-proof.html#decision-files" data-rx-proof-link="case-study">Read the Decision Files</a>
+      <a class="ff10-btn ff10-btn-line-dark" href="decision-proof.html${cx.targets.files.anchor}" data-rx-proof-link="case-study">${esc(cx.targets.files.text)}</a>
     </div>
   </div>
 </section>`;
@@ -210,7 +210,7 @@ ${tiles}
     </ul>
     <p class="ff-rx-method">Measured research, diagnostic comparisons and modeled economics are labelled separately. Independently verified purchasing outcomes: validation pending.</p>
     ${cx.attribution(shown)}
-    <a class="ff-rx-link ff-rx-link-dark" href="decision-proof.html#decision-advantage" data-rx-proof-link="advantage">Open the research center <span aria-hidden="true">→</span></a>
+    <a class="ff-rx-link ff-rx-link-dark" href="decision-proof.html${cx.targets.research.anchor}" data-rx-proof-link="advantage">${esc(cx.targets.research.short)} <span aria-hidden="true">→</span></a>
   </div>
 </section>`;
 }
@@ -387,10 +387,18 @@ ${cards}
 
 export function render(data, {preview = false} = {}) {
   const cx = context(data, preview);
+  // Decision Proof is rendered first so every homepage link points at a section that actually exists on that page.
+  const dash = dashboard(cx);
+  const fileList = files(cx);
+  const pending = {anchor: '#accountability', text: 'See how every decision is held accountable', short: 'See how decisions are held accountable'};
+  cx.targets = {
+    research: dash ? {anchor: '#decision-advantage', text: 'See the research in Decision Proof', short: 'Open the research center'} : pending,
+    files: fileList ? {anchor: '#decision-files', text: 'Read the Decision Files', short: 'Read the Decision Files'} : pending
+  };
   return {
     homeLead: [strip(cx), caseStudy(cx), difference(cx)].filter(Boolean).join('\n\n'),
     homeAdvantage: homeAdvantage(cx),
-    proofResearch: [dashboard(cx), accountability(cx), files(cx)].filter(Boolean).join('\n\n')
+    proofResearch: [dash, accountability(cx), fileList].filter(Boolean).join('\n\n')
   };
 }
 
