@@ -109,7 +109,7 @@ requireText('Decision Proof reduced motion CSS',proofCss,'@media(prefers-reduced
 forbidText('Decision Proof page inline style',proofPage,'style="');
 forbidText('Decision Proof page retired runtime JS',proofPage,'assets/js/decision-proof-v1.js');
 
-requireAll('Product customer-first summary',product,['CARD DECISION INTELLIGENCE','Know whether the evidence supports the card before you spend.','Exact card','Supported value','Clear next move','More than a comp check','Risk + liquidity','Grading economics','Decision Intelligence']);
+requireAll('Product customer-first summary',product,['CARD DECISION INTELLIGENCE','Navigate buying, holding and potential selling decisions with evidence.','Exact card','Supported value','Clear next move','More than a comp check','Risk + liquidity','Grading economics','Decision Intelligence']);
 requireText('Product Decision Intelligence navigation',product,'decision-intelligence.html');
 requireAll('Explicit Home path from Product and Decision Intelligence',product,['class="ff-back-home"','href="index.html">← Home','aria-current="page">Product','assets/css/marketing-home-breadcrumb-v1.css']);
 requireAll('Explicit Home path from Decision Intelligence',decisionPage,['class="ff-back-home"','href="index.html">← Home','aria-current="page">Decision Intelligence','assets/css/marketing-home-breadcrumb-v1.css']);
