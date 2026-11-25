@@ -211,3 +211,36 @@
   .ff-rx-q,.ff-rx-h,.ff-rx-loss{fill:CanvasText}
   .ff-rx-r{fill:Canvas;stroke:CanvasText}
 }
+
+/* Group A lead (Nov 25, 2026): the modeled finding leads with its basis beside it; aggregate economics; methodology. */
+.ff-rx-lead{margin-top:22px!important;font-size:clamp(18px,1.5vw,22px);font-weight:600;line-height:1.45;color:var(--rx-w);max-width:40em}
+.ff-rx-basis{margin-top:28px;padding:20px 22px;border:1px solid var(--rx-line-d);border-left:3px solid var(--rx-g);border-radius:6px;max-width:62em}
+.ff-rx-basis p{font-size:14px;color:rgba(255,255,255,.82)}
+.ff-rx-basis .ff-rx-limits{margin-top:12px!important}
+.ff-rx-basis .ff-rx-limits li{color:var(--rx-s)}
+.ff-rx-links{display:flex;flex-wrap:wrap;gap:10px 32px;align-items:center}
+.ff-rx-key-l i{background:var(--rx-s)}
+.ff-rx-total{margin-top:16px!important;font-size:15px;color:rgba(255,255,255,.82)}
+.ff-rx-total strong{font-size:22px;color:var(--rx-w);font-variant-numeric:tabular-nums;margin-right:6px}
+.ff-rx-file-more{font-size:13px;color:var(--rx-s)}
+.ff-rx-file-more summary{cursor:pointer;color:rgba(255,255,255,.82);font-weight:600}
+.ff-rx-file-more p{margin-top:10px!important;font-size:13px}
+.ff-rx-file-more .ff-rx-limits{margin-top:10px!important}
+.ff-rx-file-more .ff-rx-limits li{color:var(--rx-s)}
+.ff-rx-meth{padding:clamp(56px,7vw,96px) 0;border-top:1px solid var(--rx-line-d)}
+.ff-rx-meth .ff-rx-title{font-size:clamp(32px,4vw,56px)}
+.ff-rx-meth-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:24px 40px;margin-top:40px}
+.ff-rx-meth-grid h3{font-size:15px;letter-spacing:.02em;margin-bottom:8px!important;color:var(--rx-w)}
+.ff-rx-meth-grid p,.ff-rx-meth-list li{font-size:13px;line-height:1.6;color:var(--rx-s)}
+.ff-rx-meth-list strong{color:var(--rx-w);font-variant-numeric:tabular-nums}
+@media(max-width:680px){
+  /* Phone: one column, shorter blocks; every label, sample and limitation stays on the page or one tap away. */
+  .ff-rx-dash,.ff-rx-acct,.ff-rx-files,.ff-rx-meth{padding:48px 0}
+  .ff-rx-basis{padding:16px}
+  .ff-rx-legend{grid-template-columns:1fr;gap:10px;margin-top:28px!important}
+  .ff-rx-file{padding:20px}
+  .ff-rx-file-grid{gap:14px;margin-top:28px}
+  .ff-rx-meth-grid{gap:20px;margin-top:28px}
+  .ff-rx-charts .ff-rx-chart{margin-top:0}
+  .ff-rx-step p{font-size:14px}
+}

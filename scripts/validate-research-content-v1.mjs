@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import {load, render, approved, caseMath, modeledListings} from './build-research-sections.mjs';
 
 const read = p => fs.readFileSync(p, 'utf8');
+const money2 = n => '$' + Number(n).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
 const failures = [];
 let total = 0;
 const check = (name, ok, detail = '') => {
@@ -131,6 +132,39 @@ check('P15 a newly approved outcome added only to the source is published in the
   futureProof.includes('SYNTHETIC CHECK: D7 independently verified outcomes') && futureProof.includes('id="decision-advantage"'));
 check('P16 the chart tooltip, mounted outside the research sections, has literal opaque colours',
   /\.ff-rx-tip\{[^}]*background:#FFFFFF;color:#000000/.test(read('assets/css/research-sections-v1.css')));
+
+// ---- G: Group A publication (founder approval Nov 25, 2026) --------------------------------------------------------
+const text = html => html.replace(/<[^>]+>/g, ' ').replace(/&amp;/g, '&').replace(/\s+/g, ' ');
+const pubText = text(pub);
+const previewHome = render(data, {preview: true});
+// Per-listing detail of an AGGREGATE_ONLY finding (card, ask, value, modeled result) never reaches a public page.
+const aggregateOnly = data.findings.filter(x => x.publicDetail === 'AGGREGATE_ONLY' && x.listings);
+const listingStrings = aggregateOnly.flatMap(x => modeledListings(x).flatMap(l => [l.card, l.ask.toFixed(2), l.value.toFixed(2), Math.abs(l.result).toFixed(2)]));
+check('G01 aggregate-only findings publish counts and totals only: no listing card, ask, value or modeled result on a public page',
+  aggregateOnly.length > 0 && listingStrings.every(s => !pubText.includes(s)) && listingStrings.some(s => text(previewHome.proofResearch).includes(s)),
+  listingStrings.filter(s => pubText.includes(s)).join(', '));
+// A methodology-only finding appears only inside the methodology section, never as a headline or dashboard metric.
+const methodologyOnly = data.findings.filter(x => x.placement === 'methodology');
+const methodBlock = (pub.match(/<section[^>]*id="methodology"[\s\S]*?<\/section>/) || [''])[0];
+const outsideMethod = pub.replace(methodBlock, '');
+check('G02 methodology-only findings (software testing) render only in the methodology section',
+  methodologyOnly.length > 0 && methodologyOnly.every(x => !approved(x) || (methodBlock.includes(`data-rx-finding="${x.id}"`) && !outsideMethod.includes(x.id) && !text(outsideMethod).includes(x.display))));
+check('G03 the diagnostic valuation difference is never on the homepage, public or preview', ![home, previewHome.homeLead, previewHome.homeAdvantage]
+  .some(h => h.includes('valuation-diagnostic') || text(h).includes(f('valuation-diagnostic').display)));
+// No figure that is not approved appears in public text, whatever element carries it (tile, chart, table, metadata).
+const restricted = [...data.findings.filter(x => !approved(x)).map(x => x.display),
+  ...data.caseStudies.filter(c => !approved(c)).flatMap(c => [c.facts.ask, c.facts.earlierValue, c.facts.reference, c.facts.secondReference, c.facts.maxBuy]
+    .map(n => Number.isInteger(n) ? '$' + n.toLocaleString('en-US') : money2(n)).concat([money2(caseMath(c).loss), money2(caseMath(c).lossAtMaxBuy), '$' + caseMath(c).discount]))]
+  .filter(s => s.length >= 3 || /[%$]/.test(s));
+const pageText = text(home + proof) + ' ' + [...(home + proof).matchAll(/<meta[^>]+content="([^"]*)"/g)].map(m => m[1]).join(' ');
+const leaks = restricted.filter(s => new RegExp(`(^|[^\\d.,])${s.replace(/[$.*+?^()|[\]\\]/g, '\\$&')}(?![\\d])`).test(pageText));
+check('G04 no unapproved figure appears anywhere on the public pages (text, charts, tables, meta tags)', restricted.length > 5 && leaks.length === 0, leaks.join(', '));
+const strip0 = render(data, {preview: false}).homeLead;
+check('G05 the leading modeled finding states its sample, assumptions and limitations beside it', !approved(f('apparent-bargains-unprofitable'))
+  || (strip0.includes('class="ff-rx-lead"') && strip0.includes('How it was modeled') && strip0.includes('13% selling fees') && strip0.includes(f('apparent-bargains-unprofitable').sample)
+    && strip0.includes('Modeled, not realized') && strip0.includes('avoided loss') && !strip0.includes('Issue #')));
+check('G06 the methodology section labels every classification on the public page', Object.keys(data.classifications).length > 0
+  && methodBlock.includes('id="methodology"') && ['Measured research', 'Modeled economics', 'Synthetic validation', 'Independently verified outcome'].every(l => methodBlock.includes(l)));
 
 // ---- H: honest labelling ---------------------------------------------------------------------------------------------
 const preview = render(data, {preview: true});

@@ -81,7 +81,7 @@
   const experienceEvents=new Set(["audience_selected","challenge_answered","challenge_completed","demo_interacted","app_screen_viewed","hero_jump_clicked","section_viewed","beta_cta_clicked",
     // Research sections (research-sections-v1.js): which research block was reached or used. Counts only.
     "research_viewed","decision_proof_clicked","case_study_interacted","decision_file_opened"]);
-  const experiencePlacement=/^(audience-(flipper|investor|collector|dealer|grading)|challenge(-(buy|investigate|pass))?|demo|app-(discover|evaluate|receipt)|hero-(challenge|app)|inside-app|research-strip|case-study|difference|advantage|proof-dashboard|accountability|decision-files|file-0[1-4])$/;
+  const experiencePlacement=/^(audience-(flipper|investor|collector|dealer|grading)|challenge(-(buy|investigate|pass))?|demo|app-(discover|evaluate|receipt)|hero-(challenge|app)|inside-app|research-strip|case-study|difference|advantage|proof-dashboard|accountability|decision-files|methodology|file-0[1-4])$/;
   document.addEventListener("ff:conversion",event=>{
     const detail=event.detail||{};
     if(!experienceEvents.has(detail.event)||!experiencePlacement.test(String(detail.placement||"")))return;

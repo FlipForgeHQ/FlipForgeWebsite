@@ -102,6 +102,7 @@ const PLACEMENTS = new Set([
   "proof-dashboard",
   "accountability",
   "decision-files",
+  "methodology",
   "file-01",
   "file-02",
   "file-03",

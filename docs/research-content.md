@@ -9,7 +9,7 @@ file is never served: `/contracts/*` answers 404.
 |---|---|
 | `contracts/research-findings-v1.json` | The source. Each finding has its value, classification, source, sample, method, limitations and publication status. |
 | `scripts/build-research-sections.mjs` | Renders the homepage and Decision Proof blocks from the source. It has a `--check` mode (used in CI and the Netlify build) and a `--preview` mode. |
-| `scripts/validate-research-content-v1.mjs` | Checks governance, with 43 checks covering: arithmetic, publication gating, provider rights, honest labels, and analytics allow-lists. |
+| `scripts/validate-research-content-v1.mjs` | Checks governance, with 60 checks covering: arithmetic, publication gating, provider rights, aggregate-only and methodology-only placement, honest labels, and analytics allow-lists. |
 | `scripts/audit-research-sections-ci.mjs` | Rendered audit of public and preview pages, desktop and phone. |
 | `assets/css/research-sections-v1.css`, `assets/js/research-sections-v1.js` | Presentation, counters, chart tooltips and engagement counts. |
 
@@ -69,6 +69,32 @@ No layout change is needed.
 | Listings | Trout #US175 PSA 10: ask $906.49, value $922.50, −$108.91 · Morant #249 PSA 10: ask $24.95, value $26.00, −$7.33 · Tatis Jr. #203 PSA 10: ask $19.99, value $27.17, −$1.35 · (Ohtani #150 PSA 10: ask $945, value $1,225, +$115.75, not a loss) |
 | Evidence source | FlipForge's own disclosed supported values from the Nov 20 staging run (FlipForge2 issue #1024, initial analysis). This is not provider-derived, but the values were built from licensed listing data at the time. |
 | Limitations | Selected listings, not a rate. Modeled, not realized. The engine's own value is the price input, not independent market truth. None of the four received BUY, so this is not an avoided loss. Issue #1024: never publish as an avoided-loss rate. |
-| Status | INTERNAL_PREVIEW, pending founder approval. |
+| Status | **APPROVED** (Group A), Todd Holbein, Nov 25, 2026. Public pages show the aggregate only: 3 of 4, $117.59, $951.43, 12.36%. Each listing's card, ask and value stays in the internal preview. |
 
 Two other requested figures could not be traced to any FlipForge record and were removed on Nov 25, 2026 (founder decision).
+
+## Group A publication (Nov 25, 2026)
+
+Founder-approved for public pages: `apparent-bargains-unprofitable` (3 of 4), `modeled-losses-three` ($117.59 on $951.43),
+Decision Files 03 and 04, and the Day 0/7/14/30 timeline. `synthetic-acceptance` (1,952) is approved for the
+**methodology section only** (`"placement": "methodology"`).
+
+| Rule | How it is enforced |
+|---|---|
+| The modeled finding leads the homepage with its sample, assumptions and limitations beside it | Generator `strip()`; check G05 |
+| `"publicDetail": "AGGREGATE_ONLY"`: counts and totals only; no listing card, ask, value or modeled result on a public page (one listing's modeled result would reveal the value behind it) | Generator `economicsAggregate()`; check G01 |
+| Methodology-only findings never appear as a headline or dashboard metric | Generator `dashboard()` / `methodology()`; check G02 |
+| The diagnostic valuation difference never appears on the homepage | Check G03 |
+| No unapproved figure appears anywhere on the public pages: text, charts, tables or meta tags | Check G04 |
+| Every classification is explained on the public page | Methodology section; check G06 |
+
+**Rights basis for Group A.** The figures are FlipForge's own arithmetic on FlipForge's own supported values. Those
+values are derived outputs calculated from licensed live queries, which the former provider's written permission
+(Oct 16, 2026) allows FlipForge to keep. The listing asks came from live public listings. Only aggregates are shown,
+no provider is named, and no sale record is displayed. Public marketing display of derived aggregates is not
+expressly addressed in that permission, so the written request for Groups B and C also asks the former provider to
+confirm it.
+
+Still unpublished: Group B (`listings-evaluated`, `listing-coverage`) pending the former listing-data provider's
+written terms; Group C (HCI-derived findings, the $280 case and Decision Files 01 and 02) pending Hobby Card Index's
+written permission; the 4.92% diagnostic, which is never a headline.

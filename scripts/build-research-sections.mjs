@@ -78,25 +78,50 @@ function counter(f) {
 
 // ---- homepage: research strip, case study, difference --------------------------------------------------------------
 
+// Public limitations are written for readers: internal review references ("Issue #...") stay in the source only.
+const publicLimits = items => [...new Set(items.flatMap(f => f.limitations || []))].filter(l => !/^Issue #/.test(l));
+
+// How a modeled figure was produced, beside the figure itself: sample, assumptions and limitations.
+function modeledBasis(cx, shown) {
+  const modeled = shown.filter(f => f.classification === 'MODELED_ECONOMIC');
+  if (!modeled.length) return '';
+  const a = cx.get('apparent-bargains-unprofitable').assumptions;
+  const sample = modeled.find(f => f.id === 'apparent-bargains-unprofitable') || modeled[0];
+  // The sample finding's own limitations, plus the first (headline) limitation of each other modeled figure.
+  const limits = [...new Set(publicLimits([sample]).concat(modeled.filter(f => f !== sample).map(f => f.limitations[0]).filter(Boolean)))];
+  return `    <div class="ff-rx-basis" data-rx-finding="${esc(modeled.map(f => f.id).join(' '))}">
+      <p><strong>How it was modeled.</strong> Resale at FlipForge’s own supported value, minus ${Math.round(a.feeRate * 100)}% selling fees and ${wholeMoney(a.fulfilmentUsd)} fulfilment, compared with each asking price. Sample: ${esc(sample.sample)}.</p>
+      <ul class="ff-rx-limits" aria-label="Limitations">
+${limits.map(l => `        <li>${esc(l)}</li>`).join('\n')}
+      </ul>
+    </div>`;
+}
+
 function strip(cx) {
-  const ids = ['records-examined', 'evidence-excluded', 'listing-coverage'];
-  const shown = ids.filter(cx.can).map(cx.get);
+  // Approved findings lead, strongest first; at most three tiles.
+  const ids = ['apparent-bargains-unprofitable', 'modeled-losses-three', 'records-examined', 'evidence-excluded', 'listing-coverage'];
+  const shown = ids.filter(cx.can).map(cx.get).slice(0, 3);
+  const bargains = shown.find(f => f.id === 'apparent-bargains-unprofitable');
+  const lead = bargains
+    ? `\n      <p class="ff-rx-lead" data-rx-finding="${esc(bargains.id)}">Price alone misleads. In FlipForge’s November 2026 research, ${esc(bargains.display)} listings that looked like bargains were modeled as unprofitable once selling costs were counted.</p>`
+    : '';
   const head = `    <div class="ff-rx-strip-head">
       <p class="ff-rx-eyebrow">FlipForge research · November 2026</p>
       <h2 id="ff-rx-strip-title" class="ff-rx-title">Built on evidence. <span>Not assumptions.</span></h2>
-      <p class="ff-rx-sub">Real market data. Disciplined analysis. Accountable decisions.</p>
+      <p class="ff-rx-sub">Real market data. Disciplined analysis. Accountable decisions.</p>${lead}
     </div>`;
   let body;
   if (shown.length) {
     const tiles = shown.map(f => `      <li class="ff-rx-stat" data-rx-finding="${esc(f.id)}">
         <strong>${counter(f)}</strong>
         <span>${esc(f.label)}${cx.chip(f)}</span>
-        <small>${esc(f.sample)}</small>
+        <small>${esc(cx.label(f.classification))} · ${esc(f.sample)}</small>
       </li>`).join('\n');
     body = `    <ul class="ff-rx-stats" aria-label="November 2026 research findings">
 ${tiles}
     </ul>
-    <p class="ff-rx-method">${esc(cx.label(shown[0].classification))}. ${esc(shown.map(f => cx.sourceOf(f).title + ', ' + cx.sourceOf(f).date).filter((v, i, a) => a.indexOf(v) === i).join('; '))}. Research findings, not a performance guarantee.</p>
+${modeledBasis(cx, shown)}
+    <p class="ff-rx-method">${esc(shown.map(f => cx.sourceOf(f).title + ', ' + cx.sourceOf(f).date).filter((v, i, a) => a.indexOf(v) === i).join('; '))}. Research findings, not a performance guarantee.</p>
     ${cx.attribution(shown)}`;
   } else {
     body = `    <ul class="ff-rx-stats ff-rx-pillars" aria-label="How FlipForge research works">
@@ -109,7 +134,10 @@ ${tiles}
   <div class="ff10-wrap">
 ${head}
 ${body}
-    <a class="ff-rx-link" href="decision-proof.html${cx.targets.research.anchor}" data-rx-proof-link="research-strip">${esc(cx.targets.research.text)} <span aria-hidden="true">→</span></a>
+    <div class="ff-rx-links">
+      <a class="ff-rx-link" href="decision-proof.html${cx.targets.research.anchor}" data-rx-proof-link="research-strip">${esc(cx.targets.research.text)} <span aria-hidden="true">→</span></a>${bargains && cx.targets.file03 ? `
+      <a class="ff-rx-link" href="decision-proof.html#decision-file-03" data-rx-proof-link="file-03">Read Decision File 03 <span aria-hidden="true">→</span></a>` : ''}
+    </div>
   </div>
 </section>`;
 }
@@ -205,7 +233,8 @@ function outcomeStatement(cx) {
 }
 
 function homeAdvantage(cx) {
-  const ids = ['records-qualified', 'valuation-diagnostic', 'apparent-bargains-unprofitable'];
+  // The modeled findings lead the research strip; the diagnostic difference is never a homepage headline.
+  const ids = ['records-qualified', 'evidence-excluded'];
   const shown = ids.filter(cx.can).map(cx.get);
   if (!shown.length) return '';
   const tiles = shown.map(f => `      <li class="ff-rx-stat" data-rx-finding="${esc(f.id)}"><strong>${counter(f)}</strong><span>${esc(f.label)}${cx.chip(f)}</span><small>${esc(cx.label(f.classification))} · ${esc(f.sample)}</small></li>`).join('\n');
@@ -283,9 +312,32 @@ export function modeledListings(f) {
   });
 }
 
+// Public pages show an AGGREGATE_ONLY finding as counts and totals: each listing's card, ask and value stay in the
+// internal preview (any one listing's modeled result would reveal the value behind it).
+function economicsAggregate(cx, f) {
+  const n = f.derivation.of;
+  const losses = f.value;
+  const w = 100 / n;
+  const cells = Array.from({length: n}, (_, i) => `<rect class="${i < losses ? 'ff-rx-loss' : 'ff-rx-q'}" x="${f2(i * w)}" y="0" width="${f2(w - 1.2)}" height="18" rx="2"></rect>`).join('');
+  const total = cx.can('modeled-losses-three') ? cx.get('modeled-losses-three') : null;
+  const a = f.assumptions;
+  const totalLine = total ? `
+        <p class="ff-rx-total" data-rx-finding="${esc(total.id)}"><strong>−${esc(total.display)}</strong> total modeled loss on the ${losses}, on ${money(total.derivation.capitalAtRisk)} of asking prices (${total.derivation.share}%)</p>` : '';
+  const rows = [['Modeled loss at the asking price', losses], ['Modeled profit at the asking price', n - losses]]
+    .concat(total ? [['Total modeled loss on the ' + losses, '−' + total.display], ['Asking prices of the ' + losses, money(total.derivation.capitalAtRisk)]] : []);
+  return `<figure class="ff-rx-chart" aria-labelledby="ff-rx-e-cap" data-rx-finding="${esc([f.id].concat(total ? [total.id] : []).join(' '))}">
+        <figcaption id="ff-rx-e-cap"><strong>Apparent bargains, after costs</strong> ${esc(f.display)} modeled as unprofitable at their asking price</figcaption>
+        <div class="ff-rx-stack"><svg class="ff-rx-svgbar ff-rx-svgstack" viewBox="0 0 100 18" preserveAspectRatio="none" role="img" aria-label="${esc(`${losses} of ${n} modeled as unprofitable, ${n - losses} modeled as profitable`)}">${cells}</svg></div>
+        <ul class="ff-rx-keys"><li class="ff-rx-key-l"><i aria-hidden="true"></i>Modeled loss <b>${losses}</b></li><li class="ff-rx-key-q"><i aria-hidden="true"></i>Modeled profit <b>${n - losses}</b></li></ul>${totalLine}
+        <p class="ff-rx-chart-note">Resale at FlipForge’s own value, minus ${Math.round(a.feeRate * 100)}% selling fees and ${wholeMoney(a.fulfilmentUsd)} fulfilment. ${esc(f.sample)}. Modeled, not realized; selected listings, not a rate; not an avoided-loss rate. None received BUY.</p>
+        ${tableView('Apparent bargains after costs', ['Outcome', 'Listings or amount'], rows)}
+      </figure>`;
+}
+
 function economicsChart(cx) {
   if (!cx.can('apparent-bargains-unprofitable')) return '';
   const f = cx.get('apparent-bargains-unprofitable');
+  if (!cx.preview && f.publicDetail === 'AGGREGATE_ONLY') return economicsAggregate(cx, f);
   const rows = modeledListings(f);
   const max = Math.max(...rows.map(r => Math.abs(r.result)));
   // Diverging around a centre baseline: gains extend right in gold, losses extend left in hatched silver; signed labels.
@@ -306,11 +358,13 @@ function economicsChart(cx) {
 
 function dashboard(cx) {
   const order = ['listings-evaluated', 'records-examined', 'records-qualified', 'records-held', 'records-rejected', 'evidence-excluded',
-    'valuation-diagnostic', 'modeled-losses-three', 'apparent-bargains-unprofitable', 'synthetic-acceptance', 'independent-outcomes-measured'];
+    'valuation-diagnostic', 'apparent-bargains-unprofitable', 'modeled-losses-three', 'synthetic-acceptance', 'independent-outcomes-measured'];
   // Known metrics in their editorial order, then any other showable finding added to the source later (for example
   // authorized D7/D14/D30 outcomes from #1024), so a source-only update publishes without a code change.
-  const extras = cx.data.findings.filter(f => !order.includes(f.id) && showable(f, cx.preview));
-  const metrics = [...order.filter(id => cx.can(id) && id !== 'independent-outcomes-measured').map(cx.get), ...extras];
+  // Methodology-only findings (software testing) never appear as dashboard metrics.
+  const inDashboard = f => f.placement !== 'methodology';
+  const extras = cx.data.findings.filter(f => !order.includes(f.id) && showable(f, cx.preview) && inDashboard(f));
+  const metrics = [...order.filter(id => cx.can(id) && id !== 'independent-outcomes-measured').map(cx.get).filter(inDashboard), ...extras];
   if (!metrics.length) return '';
   const verified = cx.get('independent-outcomes-measured');
   const rows = [...metrics, verified].map(f => `          <tr data-rx-class="${esc(f.classification)}" data-rx-finding="${esc(f.id)}"><th scope="row">${esc(f.label)}${cx.chip(f)}</th><td>${esc(f.display)}</td><td><span class="ff-rx-class">${esc(cx.label(f.classification))}</span></td><td>${esc(f.sample)}</td></tr>`).join('\n');
@@ -320,7 +374,6 @@ function dashboard(cx) {
         <p class="ff-rx-chip" data-rx-status="UNRECONCILED">Preview only · not shown as figures</p>
         <ul>${unreconciled.map(f => `<li><strong>${esc(f.label)}:</strong> requested ${esc(f.display)}. ${esc(f.method)}</li>`).join('')}</ul>
       </div>` : '';
-  const legend = Object.entries(cx.data.classifications).map(([k, v]) => `<li><span class="ff-rx-class">${esc(cx.label(k))}</span> ${esc(v)}</li>`).join('');
   return `<section class="ff-rx ff-rx-dash" id="decision-advantage" aria-labelledby="ff-rx-dash-title" data-rx-section="proof-dashboard">
     <div class="ff-proof-page-wrap ff-rx-wide">
       <p class="ff-rx-eyebrow">Research center · as of ${esc(cx.data.asOf)}</p>
@@ -341,7 +394,28 @@ ${rows}
       ${economicsChart(cx)}
       </div>
       ${cx.attribution(metrics)}
-      <ul class="ff-rx-legend" aria-label="How to read these findings">${legend}</ul>
+      <a class="ff-rx-link" href="decision-proof.html#methodology">How to read these figures <span aria-hidden="true">→</span></a>
+    </div>
+  </section>`;
+}
+
+// Methodology: how every figure is labelled, the modeling assumptions, software testing (never a headline) and the
+// publication rule. Always rendered, so the labels behind every published figure stay one tap away.
+function methodology(cx) {
+  const legend = Object.entries(cx.data.classifications).map(([k, v]) => `<li><span class="ff-rx-class">${esc(cx.label(k))}</span> ${esc(v)}</li>`).join('');
+  const a = cx.get('apparent-bargains-unprofitable').assumptions;
+  const testing = cx.data.findings.filter(f => f.placement === 'methodology' && showable(f, cx.preview));
+  const tests = testing.map(f => `<li data-rx-finding="${esc(f.id)}"><strong>${esc(f.display)}</strong> ${esc(f.label.toLowerCase())}${cx.chip(f)}. ${esc(f.method)} ${esc(publicLimits([f]).join('. '))}.</li>`).join('');
+  return `<section class="ff-rx ff-rx-meth" id="methodology" aria-labelledby="ff-rx-meth-title" data-rx-section="methodology">
+    <div class="ff-proof-page-wrap ff-rx-wide">
+      <p class="ff-rx-eyebrow">Methodology</p>
+      <h2 id="ff-rx-meth-title" class="ff-rx-title">How to read this research.</h2>
+      <ul class="ff-rx-legend" aria-label="How every figure is labelled">${legend}</ul>
+      <div class="ff-rx-meth-grid">
+        <div><h3>Modeling assumptions</h3><p>Modeled figures resell at the stated value, minus ${Math.round(a.feeRate * 100)}% selling fees and ${wholeMoney(a.fulfilmentUsd)} fulfilment, and compare the result with the asking price. They are arithmetic on stated assumptions, not realized gains or losses.</p></div>${tests ? `
+        <div><h3>Software testing</h3><ul class="ff-rx-meth-list">${tests}</ul></div>` : ''}
+        <div><h3>What gets published</h3><p>A figure appears here only after FlipForge approves it and every data right it depends on is confirmed. Figures that depend on a data provider’s permission stay unpublished until that permission is in writing.</p></div>
+      </div>
     </div>
   </section>`;
 }
@@ -375,11 +449,13 @@ function files(cx) {
   };
   const list = cx.data.decisionFiles.filter(fileOk);
   if (!list.length) return '';
-  const cards = list.map(f => `        <article class="ff-rx-file" data-rx-file="${esc(f.number)}"${f.findings.length ? ` data-rx-finding="${esc(f.findings.join(' '))}"` : ''}${f.caseStudy ? ` data-rx-case="${esc(f.caseStudy)}"` : ''}>
+  const more = f => (f.method || (f.limitations || []).length) ? `
+          <details class="ff-rx-file-more"><summary>Method and limitations</summary>${f.method ? `<p>${esc(f.method)}</p>` : ''}${(f.limitations || []).length ? `<ul class="ff-rx-limits">${f.limitations.map(l => `<li>${esc(l)}</li>`).join('')}</ul>` : ''}</details>` : '';
+  const cards = list.map(f => `        <article class="ff-rx-file" id="decision-file-${esc(f.number)}" data-rx-file="${esc(f.number)}"${f.findings.length ? ` data-rx-finding="${esc(f.findings.join(' '))}"` : ''}${f.caseStudy ? ` data-rx-case="${esc(f.caseStudy)}"` : ''}>
           <p class="ff-rx-file-n">Decision File ${esc(f.number)}${cx.preview && !approved(f) ? ' <span class="ff-rx-chip">Preview · not approved</span>' : ''}</p>
           <h3>${esc(f.title)}</h3>
           <p>${esc(f.summary)}</p>
-          <dl><div><dt>Research dates</dt><dd>${esc(f.researchDates)}</dd></div><div><dt>Sample</dt><dd>${esc(f.sampleSize)}</dd></div></dl>
+          <dl><div><dt>Research dates</dt><dd>${esc(f.researchDates)}</dd></div><div><dt>Sample</dt><dd>${esc(f.sampleSize)}</dd></div></dl>${more(f)}
           <a class="ff-rx-file-cta" href="beta-application.html" data-rx-file-cta="${esc(f.number)}">${esc(f.cta)} <span aria-hidden="true">→</span></a>
         </article>`).join('\n');
   return `<section class="ff-rx ff-rx-files" id="decision-files" aria-labelledby="ff-rx-files-title" data-rx-section="decision-files">
@@ -404,12 +480,13 @@ export function render(data, {preview = false} = {}) {
   const pending = {anchor: '#accountability', text: 'See how every decision is held accountable', short: 'See how decisions are held accountable'};
   cx.targets = {
     research: dash ? {anchor: '#decision-advantage', text: 'See the research in Decision Proof', short: 'Open the research center'} : pending,
-    files: fileList ? {anchor: '#decision-files', text: 'Read the Decision Files', short: 'Read the Decision Files'} : pending
+    files: fileList ? {anchor: '#decision-files', text: 'Read the Decision Files', short: 'Read the Decision Files'} : pending,
+    file03: fileList.includes('data-rx-file="03"')
   };
   return {
     homeLead: [strip(cx), caseStudy(cx), difference(cx)].filter(Boolean).join('\n\n'),
     homeAdvantage: homeAdvantage(cx),
-    proofResearch: [dash, accountability(cx), fileList].filter(Boolean).join('\n\n')
+    proofResearch: [dash, accountability(cx), fileList, methodology(cx)].filter(Boolean).join('\n\n')
   };
 }
 
