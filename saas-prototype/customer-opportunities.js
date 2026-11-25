@@ -533,7 +533,7 @@
       // Sale records are no longer kept, so today's accepted-sale count can be 0 for a decision made on exact sales.
       // Then the saved receipt's value is shown, labelled as the value at decision (never recalculated here).
       ? `<strong data-supported-at-decision>${escapeHtml(supportedText)}</strong><small>At decision · based on ${receiptSales} exact sale${receiptSales === 1 ? "" : "s"}. Not re-checked here: sale records from our restricted data provider aren't kept.</small>${attributionMarkup(item, true)}`
-      : `<strong${supportedAvailable ? " class=\"value-positive\"" : ""}>${escapeHtml(supportedText)}</strong><small>${supportedAvailable ? `${gap >= 0 ? "+" : ""}${money(gap)} · ${gapPercent.toFixed(1)}% difference from supported value` : isLegacy ? "Not currently supported. This result was saved before current evidence rules." : "No accepted exact completed-sale evidence supports a value yet."}</small>`;
+      : `<strong${supportedAvailable ? " class=\"value-positive\"" : ""}>${escapeHtml(supportedText)}</strong><small>${supportedAvailable ? `${gap >= 0 ? "+" : ""}${money(gap)} · ${gapPercent.toFixed(1)}% difference from supported value` : isLegacy ? "Not currently supported. This result was saved before current evidence rules." : "No accepted exact completed-sale evidence supports a value yet."}</small>${supportedAvailable ? attributionMarkup(item, true) : ""}`;
     const askText = moneyExact(ask);
     const confidenceText = scoreText(item.confidence);
     const riskText = scoreText(riskScore(item));

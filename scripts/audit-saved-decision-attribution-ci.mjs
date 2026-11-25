@@ -10,6 +10,8 @@
 //   A4  Anything other than the one approved credit (another text, another link, a javascript: link, an entry with no
 //       text, an inherited key such as toString, a non-string link) is never rendered: no link, no empty credit block.
 //   A5  Desktop and phone: no page errors, no sideways scroll.
+//   A6  A decision whose value is supported by current accepted sales (the live hero branch) still shows the credit
+//       beside that value.
 //
 // The production host is mapped to the local server (saas-prototype/serve.mjs, port 4173 or FLIPFORGE_SDT_AUDIT_PORT).
 import { chromium } from "playwright";
@@ -29,6 +31,8 @@ const check = (name, ok, detail = "") => (ok ? passes : failures).push(detail ? 
 const CARDS = {
   "qa-attr-hci": { title: "2020 Panini Prizm Justin Jefferson #398 PSA 10", recommendation: "BUY", ask: 55, value: 10325, maxBuy: 6121, count: 8,
     attributions: [{ text: CREDIT, url: CREDIT_URL, required: true }] },
+  "qa-attr-current": { title: "2017 Panini Prizm Patrick Mahomes #269 PSA 10", recommendation: "BUY", ask: 60, value: 9800, maxBuy: 7000, count: 6, current: 6,
+    attributions: [{ text: CREDIT, url: CREDIT_URL, required: true }] },
   "qa-attr-plain": { title: "2018 Topps Update Juan Soto #US300 PSA 10", recommendation: "WATCH", ask: 44.99, value: 3784, maxBuy: 2900, count: 12,
     attributions: [] },
   "qa-attr-hostile": { title: "2019 Panini Prizm Zion Williamson #248 PSA 10", recommendation: "WATCH", ask: 25, value: 2050, maxBuy: 1500, count: 9,
@@ -44,7 +48,7 @@ function opportunity(id) {
     id, title: c.title, cardIdentity: c.title, recommendation: c.recommendation, ask: c.ask, supportedValue: c.value / 100,
     supportedValueCents: c.value, confidence: 88, liquidity: 75, risk: 35, rank: 90, observedAt: "2026-11-25T03:00:00Z", platform: "EBAY",
     mappingState: "NOT_CONFIRMED", recommendationSource: "GOVERNED_SNAPSHOT", evidenceProvenanceStatus: "CURRENT_EVIDENCE_RULES", legacyNotice: null,
-    evidence: { acceptedSales: 0, priceStatus: "LIVE_PRICING_ONLY" },
+    evidence: { acceptedSales: c.current || 0, priceStatus: "LIVE_PRICING_ONLY" },
     governedDecision: {
       available: true, recommendation: c.recommendation, confidence: 88, risk: 35, reason: `${c.recommendation}: saved reason.`, evaluatedAt: "2026-11-25T03:00:00Z",
       supportedValueCents: c.value, supportedValueStatus: "ESTABLISHED", maximumBuyPriceCents: c.maxBuy, allInAskCents: Math.round(c.ask * 100),
@@ -54,7 +58,7 @@ function opportunity(id) {
 }
 function evidence(id) {
   const c = CARDS[id];
-  return { kind: "evidence", readOnly: true, opportunityId: id, cardIdentity: c.title, acceptedExactCompletedSales: 0, visibleButAuthorityIneligible: 0,
+  return { kind: "evidence", readOnly: true, opportunityId: id, cardIdentity: c.title, acceptedExactCompletedSales: c.current || 0, visibleButAuthorityIneligible: 0,
     currentAdmission: { admitted: 0, excluded: 0, held: 0, notUsed: 0, linkedRows: 0, policy: "qa" }, linkedEvidence: [], manualCandidates: [], timeline: [],
     evidenceProvenanceStatus: "CURRENT_EVIDENCE_RULES", internalOperatorFieldsExcluded: true, transactionAuthority: false,
     decisionTime: { available: true, evaluatedAt: "2026-11-25T03:00:00Z", recommendation: c.recommendation, askPrice: c.ask, supportedValue: c.value / 100,
@@ -134,6 +138,13 @@ try {
         check(`A1 ${tag} Decision Receipt: "Price source" carries the credit`, ok.some(l => l.inReceipt) && /Price source\s*Prices from Hobby Card Index/.test(await text(s.page)),
           JSON.stringify(found));
         check(`A5 ${tag} card page: no page errors, no sideways scroll`, s.errors.length === 0 && await noScroll(s.page), s.errors.join(" | "));
+        await s.context.close();
+      }
+      {
+        const s = await open(base, "opportunities/qa-attr-current", device);
+        const found = await links(s.page);
+        check(`A6 ${tag} value supported by current accepted sales: the credit sits beside it`,
+          found.some(l => l.inHero && l.text === CREDIT && l.href === CREDIT_URL) && s.errors.length === 0, JSON.stringify(found) + " " + s.errors.join(" | "));
         await s.context.close();
       }
       {
