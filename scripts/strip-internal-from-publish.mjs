@@ -25,7 +25,8 @@ const remove = rel => {
   removed.push(rel);
 };
 
-for (const dir of ["docs", "deploy-triggers", "legal"]) remove(dir);
+// contracts/ holds the research source with every unpublished figure; it is also 404 at the edge (internal-path-guard).
+for (const dir of ["docs", "deploy-triggers", "legal", "research-preview", "contracts"]) remove(dir);
 for (const name of fs.readdirSync(root)) {
   if (/\.md$/i.test(name)) remove(name);
   else if (/^(deploy|force|trigger)[-\w.]*\.txt$/i.test(name)) remove(name);

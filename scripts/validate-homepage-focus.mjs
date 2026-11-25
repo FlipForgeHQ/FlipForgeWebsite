@@ -24,7 +24,9 @@ check('no unsupported confirmed-sale label claim',!/confirmed sale/i.test(html))
 // on the homepage needs a deliberate addition to this list.
 // 355: the Decision Challenge's illustrative "$355 under the comp" ($780 − $425) for the same fictional card.
 // 100: the 0-100 scale of the confidence and risk scores on the "Inside the app" screens ("15/100 confidence").
-const PUBLIC_HOMEPAGE_NUMBERS=new Set(['024','100','140','240','355','360','425','460','490','500','505','512','520','610','630','780','1200','2019','2026']);
+// 117, 951: the founder-approved (Nov 25, 2026, Group A) research figures "$117.59 modeled loss on $951.43 of asking
+// prices", rendered from contracts/research-findings-v1.json; validate-research-content-v1.mjs gates their publication.
+const PUBLIC_HOMEPAGE_NUMBERS=new Set(['024','100','117','140','240','355','360','425','460','490','500','505','512','520','610','630','780','951','1200','2019','2026']);
 const readable=(src=>{const body=src.replace(/<(script|style)\b[\s\S]*?<\/\1>/gi,' ');
   const attrs=[...body.matchAll(/\s(?:content|alt|title|aria-label|placeholder|value)="([^"]*)"/gi)].map(m=>m[1]).join(' ');
   return (body.replace(/<[^>]+>/g,' ')+' '+attrs).replace(/&[a-z#0-9]+;/gi,' ').replace(/#[0-9a-f]{3,8}\b/gi,' ');})(html);

@@ -25,6 +25,7 @@ export const config = {
     "/app/beta/validate*",
     "/owner/customer/validate*",
     "/docs/*",
+    "/research-preview/*",
     "/deploy-triggers/*",
     "/legal/*",
     "/*.md",
