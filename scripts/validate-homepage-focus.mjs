@@ -9,13 +9,12 @@ const has=(s,t)=>s.includes(t);
 const at=t=>html.indexOf(t);
 check('one homepage headline',(html.match(/<h1\b/g)||[]).length===1);
 check('official logo and descriptor',has(html,'assets/brand/flipforge-logo-horizontal.svg')&&has(html,'CARD DECISION INTELLIGENCE'));
-// Founder decision 2026-10-20: "Price is not proof." is the headline; the locked slogan sits directly beneath it.
-// Founder decision 2026-10-27: the category leads, the benefit follows the headline, the locked slogan stays unchanged.
-check('category, positioning headline, benefit, then the locked slogan',/<p class="ff10-hero-category"><span>Card Decision Intelligence<sup>™<\/sup><\/span><\/p>\s*<h1 id="ff10-hero-title"[^>]*><span>Price is<\/span> <span>not proof\.<\/span><\/h1>\s*<p class="ff10-hero-benefit"><span>Find opportunities\.<\/span> <span>Test the evidence\.<\/span> <span>Avoid expensive mistakes\.<\/span><\/p>\s*<p class="ff10-hero-brand"><span>Before<\/span> <span>you buy\.<\/span> <span>Know Why\.<\/span><\/p>/.test(html)&&has(html,'Before you buy. Know Why.'));
-// Founder decision Nov 5 2026: the price-vs-proof point is made once, by the hero and the Difference poster; the
-// separate price-vs-proof section was a duplicate and is gone.
-// Founder decision Nov 9 2026: the Difference poster is removed (it showed an illustrative "Realized Return" figure); the hero states it.
-check('price-is-not-proof positioning stated once',!has(html,'id="difference"')&&!has(html,'flipforge-difference')&&has(html,'data-ff10-hero')&&!has(html,'id="price-vs-proof"'));
+// Founder update 2026-11-25: lead with Card Decision Intelligence™, the next move and buying/selling decisions.
+// The approved slogan remains unchanged; the hero artwork and page structure stay in place.
+check('category, positioning headline, benefit, then the locked slogan',/<p class="ff10-hero-category"><span>Card Decision Intelligence<sup>™<\/sup><\/span><\/p>\s*<h1 id="ff10-hero-title"[^>]*><span>Know your<\/span> <span>next move\.<\/span><\/h1>\s*<p class="ff10-hero-benefit"><span>Know the evidence\.<\/span> <span>Understand the risk\.<\/span> <span>Decide with purpose\.<\/span><\/p>\s*<p class="ff10-hero-brand"><span>Before<\/span> <span>you buy\.<\/span> <span>Know Why\.<\/span><\/p>/.test(html)&&has(html,'Before you buy. Know Why.'));
+// Preserve the founder-approved single-story homepage: no duplicate difference section or withdrawn performance claims.
+// The old price-vs-proof campaign remains supporting education, not the homepage identity.
+check('no duplicate price-vs-proof section',!has(html,'id="difference"')&&!has(html,'flipforge-difference')&&has(html,'data-ff10-hero')&&!has(html,'id="price-vs-proof"'));
 check('Decision Proof reachable once from the homepage',(html.match(/href="decision-proof\.html"/g)||[]).length===1&&has(html,'<strong>Frozen decisions</strong>'));
 check('no unsupported confirmed-sale label claim',!/confirmed sale/i.test(html));
 // Internal audit details stay off the public page. Rather than list the internal figures here (this file is public),
@@ -32,8 +31,8 @@ const unapprovedNumbers=[...new Set(readable.match(/\b\d{3,}\b/g)||[])].filter(n
 check('internal audit details stay off the public page (only approved public figures; no internal finding labels)',
   unapprovedNumbers.length===0&&!/\b[A-Z]\d{1,3}\b/.test(readable.replace(/\b(?:H[1-6]|T(?:7|14|30)|Q[1-4])\b/g,'')));
 if(unapprovedNumbers.length)console.log('  unapproved homepage numbers:',unapprovedNumbers.join(', '));
-check('primary supporting statement',has(html,'A price tells you what someone asked or paid. FlipForge shows what it actually proves, and what you should pay.'));
-check('link previews carry the positioning',has(html,'<meta property="og:title" content="Price is not proof. | FlipForge™">')&&has(html,'name="twitter:card" content="summary_large_image"')&&has(html,'assets/images/flipforge-share-price-is-not-proof.jpg'));
+check('new category mission includes buy/hold/sell',has(html,'Every card has a price.')&&has(html,'buying, holding, or considering a sale.'));
+check('link previews carry the positioning',has(html,'<meta property="og:title" content="Card Decision Intelligence™ | FlipForge">')&&has(html,'name="twitter:card" content="summary_large_image"')&&has(html,'assets/images/flipforge-share-price-is-not-proof.jpg'));
 check('product shown in the hero',has(html,'class="ff10-panel"')&&has(html,'Max Buy')&&has(html,'Price gap')&&has(html,'data-ff10-sync="verdict"'));
 check('hero interaction routes: the Decision Challenge and Inside FlipForge, with beta access one tap away',has(html,'href="#demo" data-ff-hero-jump="challenge">Try the Decision Challenge')&&has(html,'href="#inside-the-app" data-ff-hero-jump="app">See Inside FlipForge')&&has(html,'id="demo"')&&has(html,'data-ffdemo')&&has(html,'id="inside-the-app"')&&/class="ff10-hero-note">[^<]*<a href="beta-application.html" data-ff-hero-apply>Request Beta Access<\/a>/.test(html));
 check('slider label and hint',has(html,'<label for="ff10-ask">Asking price</label>')&&has(html,'Drag the handle or use your arrow keys.'));

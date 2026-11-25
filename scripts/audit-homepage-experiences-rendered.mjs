@@ -22,7 +22,7 @@ for (const [name, viewport] of [['phone-390', {width: 390, height: 844}], ['tabl
     return { category: document.querySelector('.ff10-hero-category')?.textContent.trim(), benefit: document.querySelector('.ff10-hero-benefit')?.textContent.replace(/\s+/g, ' ').trim(),
       challengeBottom: q('[data-ff-hero-jump="challenge"]'), appBottom: q('[data-ff-hero-jump="app"]'), vh: innerHeight }; });
   check(`${name}: hero leads with Card Decision Intelligence™ and the benefit line`, heroInfo.category === 'Card Decision Intelligence™'
-    && heroInfo.benefit === 'Find opportunities. Test the evidence. Avoid expensive mistakes.');
+    && heroInfo.benefit === 'Know the evidence. Understand the risk. Decide with purpose.');
   check(`${name}: both hero shortcuts are on the first screen`, heroInfo.challengeBottom <= heroInfo.vh && heroInfo.appBottom <= heroInfo.vh);
   await page.locator('[data-ff-hero-jump="challenge"]').click();
   await page.waitForTimeout(1200);

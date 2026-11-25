@@ -27,11 +27,11 @@ const check = (label, ok) => { if (ok) passed++; else failures.push(label); };
 // ---------- 1. Positioning ----------
 const hero = page.slice(page.indexOf('<section class="ff10-hero"'), page.indexOf('</section>', page.indexOf('<section class="ff10-hero"')));
 const order = ['class="ff10-hero-category"', 'id="ff10-hero-title"', 'class="ff10-hero-benefit"', 'class="ff10-hero-brand"', 'class="ff10-lede"', 'class="ff10-actions"'];
-check('P01 hero order: category, "Price is not proof.", benefit, slogan, explanation, actions',
+check('P01 hero order: category, next-move headline, benefit, slogan, explanation, actions',
   order.map(t => hero.indexOf(t)).every((v, i, a) => v > 0 && (i === 0 || v > a[i - 1])));
 check('P02 category reads "Card Decision Intelligence™"', hero.includes('<span>Card Decision Intelligence<sup>™</sup></span>'));
-check('P03 benefit line is exact', hero.includes('<span>Find opportunities.</span> <span>Test the evidence.</span> <span>Avoid expensive mistakes.</span>'));
-check('P04 headline and locked slogan unchanged', hero.includes('<span>Price is</span> <span>not proof.</span></h1>')
+check('P03 benefit line is exact', hero.includes('<span>Know the evidence.</span> <span>Understand the risk.</span> <span>Decide with purpose.</span>'));
+check('P04 next-move headline and locked slogan', hero.includes('<span>Know your</span> <span>next move.</span></h1>')
   && hero.includes('<p class="ff10-hero-brand"><span>Before</span> <span>you buy.</span> <span>Know Why.</span></p>'));
 check('P05 existing hero art, illustrative panel and disclosure untouched', hero.includes('assets/images/ff10-hero.webp')
   && hero.includes('class="ff10-panel"') && hero.includes('Fictional card and illustrative numbers. Not a live evaluation.')
