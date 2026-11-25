@@ -154,6 +154,7 @@ const horizonsHonest = d => {
 };
 const measuredFixture = JSON.parse(JSON.stringify(data));
 Object.assign(measuredFixture.findings.find(x => x.id === 'independent-outcomes-measured'), {value: 1, display: '1'});
+measuredFixture.accountability.horizons.filter(x => x.key !== 'D0').forEach(x => Object.assign(x, {status: 'PENDING', statusText: 'Validation pending'}));
 Object.assign(measuredFixture.accountability.horizons.find(x => x.key === 'D7'), {status: 'MEASURED', statusText: '1 independently verified outcome'});
 const contradiction = JSON.parse(JSON.stringify(data));
 Object.assign(contradiction.findings.find(x => x.id === 'independent-outcomes-measured'), {value: 3, display: '3'});
