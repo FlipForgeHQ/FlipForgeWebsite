@@ -15,6 +15,7 @@ on:
       - 'scripts/audit-saved-decisions-tracking-ci.mjs'
       - 'scripts/audit-saved-decisions-alerts-m1-ci.mjs'
       - 'scripts/audit-saved-decision-evidence-consistency-ci.mjs'
+      - 'scripts/audit-saved-decision-attribution-ci.mjs'
       - 'scripts/validate-saved-decision-wording-v1.mjs'
       - 'saas-prototype/**'
       - 'saas-prototype/customer.html'
@@ -66,6 +67,7 @@ on:
       - 'scripts/audit-saved-decisions-tracking-ci.mjs'
       - 'scripts/audit-saved-decisions-alerts-m1-ci.mjs'
       - 'scripts/audit-saved-decision-evidence-consistency-ci.mjs'
+      - 'scripts/audit-saved-decision-attribution-ci.mjs'
       - 'scripts/validate-saved-decision-wording-v1.mjs'
       - 'saas-prototype/decision-intelligence-v1.js'
       - 'saas-prototype/customer.html'
@@ -170,6 +172,8 @@ jobs:
         run: node scripts/audit-saved-decisions-alerts-m1-ci.mjs
       - name: Audit saved-decision evidence consistency (a saved BUY is never shown beside "no sales" or 0; Max Buy at decision; no raw codes)
         run: node scripts/audit-saved-decision-evidence-consistency-ci.mjs
+      - name: Audit saved-decision provider attribution (the licensed credit beside HCI-derived values only; unapproved credits never rendered; desktop and phone)
+        run: node scripts/audit-saved-decision-attribution-ci.mjs
       - name: Audit customer and beta navigation separation
         run: node scripts/audit-customer-navigation-parity-ci.mjs
       - name: Audit visual parity across full customer routes

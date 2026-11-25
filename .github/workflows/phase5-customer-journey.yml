@@ -11,6 +11,9 @@ on:
       - "scripts/audit-phase5-customer-journey-ci.mjs"
       - "scripts/audit-outcome-timeline-ci.mjs"
       - "scripts/fixtures/phase5/**"
+      - "scripts/audit-accountability-journey-ci.mjs"
+      - "scripts/fixtures/accountability/**"
+      - "netlify/functions/provider-disclosure-filter.js"
       - "scripts/journey/**"
       - ".github/workflows/phase5-customer-journey.yml"
   workflow_dispatch:
@@ -77,10 +80,18 @@ jobs:
           FF_OTL_SHOTS: output/outcome-timeline
         run: node scripts/audit-outcome-timeline-ci.mjs
 
+      - name: Accountability record audit (issue FlipForge2#1019; replay of captured backend responses, three widths)
+        env:
+          FF_ACCT_SHOTS: output/accountability
+          AXE_CORE_PATH: ${{ runner.temp }}/axe/node_modules/axe-core/axe.min.js
+        run: node scripts/audit-accountability-journey-ci.mjs
+
       - name: Upload screenshots
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: phase5-customer-journey-screenshots
-          path: output/phase5
+          path: |
+            output/phase5
+            output/accountability
           retention-days: 14

@@ -1,0 +1,50 @@
+section,field,value
+manifest,payload_sha256,223928a5e72d1b5f8725eb732788cb60da44545527c59c82feb14fbb30d3d7b3
+manifest,generated_at,2026-11-25T14:29:02.611Z
+authority,recommendation,Smart Opportunity
+authority,grading_guidance,Existing PSA intelligence
+authority,transaction_authority,false
+opportunity,id,EBAY-p5-one-sale-provider
+opportunity,card_identity,2020 Prizm Phase5 One Sale #1 PSA 10
+opportunity,recommendation,VERIFY
+opportunity,ask,400
+opportunity,supported_value,
+opportunity,value_status,Based on 1 sale: value withheld
+opportunity,confidence,40
+opportunity,liquidity,60
+opportunity,risk,65
+opportunity,evidence_provenance_status,CURRENT_EVIDENCE_RULES
+opportunity,legacy_notice,
+evidence,accepted_exact_completed_sales,0
+evidence,visible_but_authority_ineligible,0
+psa,guidance_status,INSUFFICIENT_SAVED_CONTEXT
+psa,recalculated,false
+lifecycle,tracking_status,WATCHING
+lifecycle,outcome_status,NONE
+lifecycle,review_at,
+lifecycle,record_version,0
+boundary,current_value_calculated,false
+boundary,performance_calculated,false
+accountability,record_version,decision-accountability-record-v1
+accountability,record_status,VALUE_WITHHELD
+accountability,receipt_sha256,699b44ac04f25732c8f2ad2ac637a55f7d92218f6dac141a8c069b126361cc7a
+accountability,snapshot_sha256,e5d6c4690504b5eb4df7feccd820f4fe04d6dc3f64a78221e9b4222508b1f782
+accountability,decided_at,2026-10-15T15:56:59.096988461Z
+accountability,card_identity_as_decided,2020 Prizm Phase5 One Sale #1 PSA 10
+accountability,exact_identity_basis,CONFIRMED
+accountability,listing_verification_status,NOT_RECORDED
+accountability,decision_rules_version,PRE_PASS_REQUIRES_DISQUALIFIER
+accountability,profitability_policy_version,BEFORE_PROFITABILITY_RULES
+accountability,qualified_exact_sales,1
+accountability,evidence_source_basis,DATA_PROVIDER
+accountability,value_status,WITHHELD
+accountability,supported_value_cents_as_decided,
+accountability,max_buy_cents_as_decided,
+accountability,reason_code,VERIFICATION_REQUIRED
+accountability,consistent,true
+accountability,consistency_findings,
+accountability,not_recorded,LISTING_VERIFICATION ENGINE_COMPONENT_VERSIONS SALE_FRESHNESS
+checkpoint_d7,accountability_status,MISSED | measured false | recorded false
+checkpoint_d14,accountability_status,MISSED | measured false | recorded false
+checkpoint_d30,accountability_status,NO_NEW_VERIFIED_EVIDENCE | measured false | recorded true
+accountability,checkpoint_summary,0 of 3 due checkpoints have been measured with independently confirmed sales. FlipForge does not treat that as a result either way.

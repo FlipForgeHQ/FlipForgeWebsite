@@ -1,0 +1,11 @@
+{
+  "status": 404,
+  "body": {
+    "error": {
+      "code": "ROUTE_NOT_FOUND",
+      "generatedAt": "2026-11-24T16:38:19.941959306Z",
+      "correlationId": "05301717-56f6-48b1-a776-615669668881",
+      "message": "The requested route is not enabled."
+    }
+  }
+}

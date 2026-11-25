@@ -133,7 +133,26 @@
     if (trust()?.isLegacy && trust().isLegacy(item)) return null;
     return governed;
   }
+  // Licence attribution saved with the decision by the server (governedDecision.sourceAttributions). Only the one
+  // approved provider credit is shown, exactly as agreed; anything else the server might send is ignored, never rendered.
+  const APPROVED_ATTRIBUTIONS = Object.freeze({ "https://hobbycardindex.com": "Prices from Hobby Card Index" });
+  function savedAttributions(item) {
+    const list = item?.governedDecision?.sourceAttributions;
+    if (!Array.isArray(list)) return [];
+    // Both fields must be strings, the link an own key of the allow-list, and the text exactly its approved credit; a
+    // missing text can never match (undefined === undefined) and inherited keys ("toString", "__proto__") never count.
+    return list.filter(a => a && typeof a === "object" && typeof a.url === "string" && typeof a.text === "string"
+      && Object.prototype.hasOwnProperty.call(APPROVED_ATTRIBUTIONS, a.url) && APPROVED_ATTRIBUTIONS[a.url] === a.text);
+  }
+  function attributionMarkup(item, compact = false) {
+    const found = savedAttributions(item);
+    if (!found.length) return "";
+    return found.map(a => `<${compact ? "small" : "p"} class="ff-source-attribution" data-ff-source-attribution style="display:block"><a href="${escapeHtml(a.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(a.text)}</a></${compact ? "small" : "p"}>`).join("");
+  }
   function listSupportedCell(item) {
+    return listSupportedValue(item) + attributionMarkup(item, true);
+  }
+  function listSupportedValue(item) {
     if (trust()?.isLegacy && trust().isLegacy(item)) return `<span>Not currently supported</span>`;
     if (trust()?.valuesWithheld?.(item)) return trust().withheldMarkup(item);
     const receipt = savedReceipt(item);
@@ -513,8 +532,8 @@
       : supportedAtDecision
       // Sale records are no longer kept, so today's accepted-sale count can be 0 for a decision made on exact sales.
       // Then the saved receipt's value is shown, labelled as the value at decision (never recalculated here).
-      ? `<strong data-supported-at-decision>${escapeHtml(supportedText)}</strong><small>At decision · based on ${receiptSales} exact sale${receiptSales === 1 ? "" : "s"}. Not re-checked here: sale records from our restricted data provider aren't kept.</small>`
-      : `<strong${supportedAvailable ? " class=\"value-positive\"" : ""}>${escapeHtml(supportedText)}</strong><small>${supportedAvailable ? `${gap >= 0 ? "+" : ""}${money(gap)} · ${gapPercent.toFixed(1)}% difference from supported value` : isLegacy ? "Not currently supported. This result was saved before current evidence rules." : "No accepted exact completed-sale evidence supports a value yet."}</small>`;
+      ? `<strong data-supported-at-decision>${escapeHtml(supportedText)}</strong><small>At decision · based on ${receiptSales} exact sale${receiptSales === 1 ? "" : "s"}. Not re-checked here: sale records from our restricted data provider aren't kept.</small>${attributionMarkup(item, true)}`
+      : `<strong${supportedAvailable ? " class=\"value-positive\"" : ""}>${escapeHtml(supportedText)}</strong><small>${supportedAvailable ? `${gap >= 0 ? "+" : ""}${money(gap)} · ${gapPercent.toFixed(1)}% difference from supported value` : isLegacy ? "Not currently supported. This result was saved before current evidence rules." : "No accepted exact completed-sale evidence supports a value yet."}</small>${supportedAvailable ? attributionMarkup(item, true) : ""}`;
     const askText = moneyExact(ask);
     const confidenceText = scoreText(item.confidence);
     const riskText = scoreText(riskScore(item));
@@ -589,6 +608,7 @@
           <div><dt>Exact completed sales at decision</dt><dd>${escapeHtml(knownCount(governedReceipt.exactTrustedCompCount) === null ? "Not recorded" : String(knownCount(governedReceipt.exactTrustedCompCount)))}</dd></div>
           <div><dt>Identity verification</dt><dd>${escapeHtml(identityBasisLabel(identityBasis))}</dd></div>
           <div><dt>Policy version</dt><dd>${escapeHtml(String(governedReceipt.policyVersion || "Not recorded"))}</dd></div>
+          ${savedAttributions(item).length ? `<div><dt>Price source</dt><dd>${attributionMarkup(item, true)}</dd></div>` : ""}
         </dl>
         <p class="ff-ux-receipt-note">Decision support only. Not investment advice or transaction authority. If a full historical receipt was not preserved, this display does not invent one.</p>
       </div>
