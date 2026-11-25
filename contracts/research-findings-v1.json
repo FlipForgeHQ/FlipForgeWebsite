@@ -1,0 +1,349 @@
+{
+  "schema": "flipforge-research-findings-v1",
+  "version": "2026-11-25.1",
+  "asOf": "2026-11-25",
+  "servedPath": "never served: /contracts/* answers 404 (netlify/modern-functions/internal-path-guard.mjs)",
+  "purpose": "The one source for every research figure on the website. scripts/build-research-sections.mjs renders the homepage and Decision Proof blocks from this file; nothing else may hard-code a research statistic.",
+  "publicationRule": "Public pages render a finding only when publication.status is APPROVED and every blocker is cleared. Everything else renders only in the local internal preview (marketing-preview/, git-ignored, never deployed).",
+  "synchronization": {
+    "backendIssue": "https://github.com/FlipForgeHQ/FlipForge2/issues/1024",
+    "relatedPullRequests": [
+      {"repo": "FlipForgeHQ/FlipForge2", "number": 1020, "subject": "Decision accountability record and checkpoint measurement"},
+      {"repo": "FlipForgeHQ/FlipForge2", "number": 1021, "subject": "Independent outcome recorder (D7/D14/D30 provenance)"},
+      {"repo": "FlipForgeHQ/FlipForge2", "number": 1022, "subject": "Product validation protocol v1 (docs)"},
+      {"repo": "FlipForgeHQ/FlipForge2", "number": 1023, "subject": "Gated licensed-provider decision path"}
+    ],
+    "updateProcedure": "When #1024 returns authorized D7/D14/D30 results, add them as findings with classification INDEPENDENTLY_VERIFIED_OUTCOME (or PROVIDER_REPORTED_OUTCOME), set the horizon status in accountability.horizons, bump version, run the build, and record the approval. No layout change is needed."
+  },
+  "classifications": {
+    "MEASURED_RESEARCH": "Counted directly from a recorded research run. Describes what was examined, not what will happen.",
+    "DIAGNOSTIC_COMPARISON": "A comparison between two estimates of the same thing. Neither side is independent market truth; it is not valuation accuracy.",
+    "MODELED_ECONOMIC": "Arithmetic on stated assumptions (fees, fulfilment, a reference price). Not a realized gain or loss.",
+    "SYNTHETIC_VALIDATION": "Software tests on invented data. Proves rules are applied consistently; says nothing about market accuracy.",
+    "INDEPENDENTLY_VERIFIED_OUTCOME": "A later market outcome measured from an authorized independent source or named verifier and compared with a frozen Day-0 decision.",
+    "PROVIDER_REPORTED_OUTCOME": "A later outcome reported by one licensed provider only. Shown as provider-reported, never as measured."
+  },
+  "publicationStatuses": {
+    "APPROVED": "Founder-approved and every rights blocker cleared. May render on public pages.",
+    "INTERNAL_PREVIEW": "Reconciled to its source, but not approved for publication. Preview only.",
+    "UNRECONCILED": "The figure could not be traced to a FlipForge record. Never rendered as a finding; the internal preview names it only in its reconciliation note.",
+    "WITHDRAWN": "Previously published and withdrawn. Never rendered."
+  },
+  "sources": [
+    {
+      "id": "hci-pilot-2026-11-24",
+      "title": "Licensed-provider real-data pilot, 10 cards",
+      "date": "2026-11-24",
+      "record": "FlipForge2 project: claude/FF_HCI_REAL_DATA_INTEGRATION_VALIDATION_2026-11-24.md; claude/hci-pilot/HCI_PILOT_AGGREGATE_REPORT_2026-11-25.json",
+      "provider": "Hobby Card Index",
+      "providerDerived": true,
+      "attribution": "Prices from Hobby Card Index",
+      "scope": "10 liquid cards selected by FlipForge; 8 matched exactly in the provider's catalog. Up to 100 sales per grade per request, so three cards cover only about the latest 45 days.",
+      "rightsNeeded": ["Hobby Card Index written permission to display provider-derived research figures publicly and in social media", "Founder publication approval"]
+    },
+    {
+      "id": "real-listing-2026-11-20-23",
+      "title": "Real-listing evaluations, 40 selected cards",
+      "date": "2026-11-20 / 2026-11-23",
+      "record": "FlipForge2 project: claude/FF_REAL_LISTING_TEST_PLAN_2026-11-20.md; claude/FF_PR1016_FINAL_RELEASE_REPORT_2026-11-23.md",
+      "provider": "FlipForge decision engine on staging; live marketplace listings; evidence from FlipForge's licensed listing-data provider at the time",
+      "providerDerived": true,
+      "attribution": "",
+      "scope": "40 liquid cards, 10 per sport, one live listing each. Cards 1-21 on Nov 20 and 22-40 on Nov 23, on two code versions. Not a customer mix.",
+      "rightsNeeded": ["Founder publication approval", "Confirm the listing-data provider's terms allow public display of derived coverage metrics"]
+    },
+    {
+      "id": "issue-1024-initial-analysis",
+      "title": "Decision Advantage Study, initial exploratory diagnostic",
+      "date": "2026-11-25",
+      "record": "https://github.com/FlipForgeHQ/FlipForge2/issues/1024 (Initial analysis completed 2026-11-25), on the Nov 20 real-listing report",
+      "provider": "FlipForge decision engine (its own disclosed values)",
+      "providerDerived": false,
+      "attribution": "",
+      "scope": "The 4 of 21 Nov 20 evaluations where a simple 'ask below supported value' rule would buy. Selected listings, the engine's own value as the common price input.",
+      "rightsNeeded": ["Founder publication approval", "Issue #1024: must not be published as an avoided-loss rate; no public accuracy or superiority claim before review"]
+    }
+  ],
+  "findings": [
+    {
+      "id": "listings-evaluated",
+      "label": "Real listings evaluated",
+      "value": 38, "unit": "count", "display": "38",
+      "classification": "MEASURED_RESEARCH",
+      "source": "real-listing-2026-11-20-23",
+      "sample": "40 selected cards; an exact live listing was found and evaluated for 38",
+      "method": "One live listing per card, matched to the exact card, evaluated by the production decision engine on staging.",
+      "limitations": ["Liquid cards chosen by FlipForge, not a customer mix", "Two code versions (Nov 20 and Nov 23)"],
+      "publication": {"status": "INTERNAL_PREVIEW", "blockers": ["Founder publication approval", "Listing-data provider terms for derived metrics"], "approvedBy": null, "approvedOn": null}
+    },
+    {
+      "id": "listing-coverage",
+      "label": "Exact listing evaluation coverage",
+      "value": 95.0, "unit": "percent", "display": "95%",
+      "derivation": {"numerator": 38, "denominator": 40},
+      "classification": "MEASURED_RESEARCH",
+      "source": "real-listing-2026-11-20-23",
+      "sample": "38 of 40 selected cards",
+      "method": "Cards with an exact live listing found and evaluated, divided by cards tested.",
+      "limitations": ["Coverage of the 40 selected cards only", "A supported value was shown for 27 of 40 (68%); NHL 2 of 10"],
+      "publication": {"status": "INTERNAL_PREVIEW", "blockers": ["Founder publication approval", "Listing-data provider terms for derived metrics"], "approvedBy": null, "approvedOn": null}
+    },
+    {
+      "id": "records-examined",
+      "label": "Target-grade sale records examined",
+      "value": 575, "unit": "count", "display": "575",
+      "derivation": {"sumOf": ["records-qualified", "records-held", "records-rejected"]},
+      "classification": "MEASURED_RESEARCH",
+      "source": "hci-pilot-2026-11-24",
+      "sample": "8 exactly matched cards (of 10 tested); sales in the searched grade only",
+      "method": "Every sale the provider returned in the card's own grade was run through FlipForge's identity, completed-sale, Best Offer, venue and duplicate rules.",
+      "limitations": ["One provider", "8 cards", "Three cards hit the 100-sales limit and cover about the latest 45 days only"],
+      "publication": {"status": "INTERNAL_PREVIEW", "blockers": ["Hobby Card Index written permission for public display", "Founder publication approval"], "approvedBy": null, "approvedOn": null}
+    },
+    {
+      "id": "records-qualified",
+      "label": "Qualified sales",
+      "value": 399, "unit": "count", "display": "399",
+      "classification": "MEASURED_RESEARCH",
+      "source": "hci-pilot-2026-11-24",
+      "sample": "Of 575 target-grade records",
+      "method": "Records that passed every FlipForge qualification rule.",
+      "limitations": ["Qualification is FlipForge's rule set, not an external standard"],
+      "publication": {"status": "INTERNAL_PREVIEW", "blockers": ["Hobby Card Index written permission for public display", "Founder publication approval"], "approvedBy": null, "approvedOn": null}
+    },
+    {
+      "id": "records-held",
+      "label": "Records held for verification",
+      "value": 167, "unit": "count", "display": "167",
+      "classification": "MEASURED_RESEARCH",
+      "source": "hci-pilot-2026-11-24",
+      "sample": "Of 575 target-grade records",
+      "method": "Records the rules could not turn into a qualifying price (held, not judged wrong).",
+      "breakdown": [
+        {"label": "Best Offer accepted at or above the asking price", "value": 62},
+        {"label": "Auction-house venue, buyer's premium unknown", "value": 49},
+        {"label": "Sale type not reported", "value": 24},
+        {"label": "Best Offer with only the accepted price stated", "value": 17},
+        {"label": "Other held reasons", "value": 15}
+      ],
+      "limitations": ["Held records may be real sales; they are set aside because their price cannot be established"],
+      "publication": {"status": "INTERNAL_PREVIEW", "blockers": ["Hobby Card Index written permission for public display", "Founder publication approval"], "approvedBy": null, "approvedOn": null}
+    },
+    {
+      "id": "records-rejected",
+      "label": "Records rejected",
+      "value": 9, "unit": "count", "display": "9",
+      "classification": "MEASURED_RESEARCH",
+      "source": "hci-pilot-2026-11-24",
+      "sample": "Of 575 target-grade records",
+      "method": "Records that named a different card: wrong parallel or variation, wrong card number, or an identity the matcher could not establish.",
+      "limitations": [],
+      "publication": {"status": "INTERNAL_PREVIEW", "blockers": ["Hobby Card Index written permission for public display", "Founder publication approval"], "approvedBy": null, "approvedOn": null}
+    },
+    {
+      "id": "evidence-excluded",
+      "label": "Evidence excluded from qualified sales",
+      "value": 30.6, "unit": "percent", "display": "30.6%",
+      "derivation": {"numerator": 176, "denominator": 575, "numeratorOf": ["records-held", "records-rejected"]},
+      "classification": "MEASURED_RESEARCH",
+      "source": "hci-pilot-2026-11-24",
+      "sample": "176 of 575 target-grade records (167 held + 9 rejected)",
+      "method": "Held plus rejected records, divided by all target-grade records.",
+      "limitations": ["'Excluded' means not counted toward a value, not 'fake' or 'wrong'", "8 cards, one provider"],
+      "publication": {"status": "INTERNAL_PREVIEW", "blockers": ["Hobby Card Index written permission for public display", "Founder publication approval"], "approvedBy": null, "approvedOn": null}
+    },
+    {
+      "id": "valuation-diagnostic",
+      "label": "Median diagnostic valuation difference",
+      "value": 4.92, "unit": "percent", "display": "4.92%",
+      "classification": "DIAGNOSTIC_COMPARISON",
+      "source": "hci-pilot-2026-11-24",
+      "sample": "6 cards with both a FlipForge supported value (Nov 20/23) and a provider qualified median (Nov 24)",
+      "method": "Absolute difference between FlipForge's supported value and the provider's qualified median, as a share of the provider median; median across the 6 cards.",
+      "cards": [
+        {"card": "2018 Topps Chrome Shohei Ohtani #150 PSA 10", "flipforge": 1225.00, "reference": 911.00},
+        {"card": "2011 Topps Update Mike Trout #US175 PSA 9", "flipforge": 356.00, "reference": 380.00},
+        {"card": "2018 Panini Prizm Luka Doncic #280 PSA 10", "flipforge": 205.00, "reference": 248.00},
+        {"card": "2000 Bowman Chrome Tom Brady #236 PSA 9", "flipforge": 8285.00, "reference": 8500.00},
+        {"card": "2003 Topps Chrome LeBron James #111 PSA 9", "flipforge": 4433.90, "reference": 4550.00},
+        {"card": "2023-24 Upper Deck Young Guns Connor Bedard #451 PSA 10", "flipforge": 647.00, "reference": 625.00}
+      ],
+      "limitations": ["Not valuation accuracy: neither side is an independently verified later outcome", "The two estimates were taken 1-4 days apart from overlapping sales", "6 cards; the spread is wide (2.5% to 34.5%)"],
+      "publication": {"status": "INTERNAL_PREVIEW", "blockers": ["Hobby Card Index written permission for public display", "Founder publication approval", "Must never be labelled accuracy"], "approvedBy": null, "approvedOn": null}
+    },
+    {
+      "id": "apparent-bargains-unprofitable",
+      "label": "Apparent bargains modeled as unprofitable",
+      "value": 3, "unit": "count", "display": "3 of 4",
+      "derivation": {"of": 4},
+      "classification": "MODELED_ECONOMIC",
+      "source": "issue-1024-initial-analysis",
+      "sample": "4 of 21 Nov 20 evaluations where the asking price was below FlipForge's own supported value",
+      "method": "Modeled Day-0 net proceeds = supported value - 13% selling fees - $5 fulfilment, compared with the asking price.",
+      "listings": [
+        {"card": "2018 Topps Chrome Shohei Ohtani #150 PSA 10", "ask": 945.00, "value": 1225.00, "verdict": "WATCH"},
+        {"card": "2011 Topps Update Mike Trout #US175 PSA 10", "ask": 906.49, "value": 922.50, "verdict": "PASS"},
+        {"card": "Ja Morant #249 PSA 10", "ask": 24.95, "value": 26.00, "verdict": "PASS"},
+        {"card": "Fernando Tatis Jr. #203 PSA 10", "ask": 19.99, "value": 27.17, "verdict": "PASS"}
+      ],
+      "assumptions": {"feeRate": 0.13, "fulfilmentUsd": 5.00},
+      "limitations": ["Selected listings, not a rate", "Uses FlipForge's own value as the price input, not independent market truth", "None of the 4 received BUY; this is not a measured avoided loss", "Issue #1024: do not publish as an avoided-loss rate"],
+      "publication": {"status": "INTERNAL_PREVIEW", "blockers": ["Founder publication approval", "Issue #1024 review (not an avoided-loss rate)"], "approvedBy": null, "approvedOn": null}
+    },
+    {
+      "id": "modeled-losses-three",
+      "label": "Modeled losses on the three unprofitable listings",
+      "value": 117.59, "unit": "usd", "display": "$117.59",
+      "derivation": {"fromFinding": "apparent-bargains-unprofitable", "capitalAtRisk": 951.43, "share": 12.36},
+      "classification": "MODELED_ECONOMIC",
+      "source": "issue-1024-initial-analysis",
+      "sample": "3 listings, $951.43 of asking prices",
+      "method": "Sum of (asking price - modeled net proceeds) for the listings with negative modeled proceeds, same assumptions.",
+      "limitations": ["Modeled, not realized", "Selected listings", "The engine's own value is the price input"],
+      "publication": {"status": "INTERNAL_PREVIEW", "blockers": ["Founder publication approval", "Issue #1024 review (not an avoided-loss rate)"], "approvedBy": null, "approvedOn": null}
+    },
+    {
+      "id": "directive-modeled-losses-378",
+      "label": "Modeled losses across four selected listings (as requested)",
+      "value": 378.68, "unit": "usd", "display": "$378.68",
+      "classification": "MODELED_ECONOMIC",
+      "source": "issue-1024-initial-analysis",
+      "sample": "Not traceable",
+      "method": "Not found in any FlipForge record. With the stated assumptions (13% fees, $5 fulfilment) the four Nov 20 listings give $117.59 on the three unprofitable ones, or $275.02 if the Ohtani listing is measured against the newer $911 reference instead.",
+      "limitations": ["Source calculation needed before any use"],
+      "publication": {"status": "UNRECONCILED", "blockers": ["Founder to supply the calculation and its inputs"], "approvedBy": null, "approvedOn": null}
+    },
+    {
+      "id": "directive-capital-exposure-19",
+      "label": "Modeled capital loss exposure (as requested)",
+      "value": 19.03, "unit": "percent", "display": "19.03%",
+      "classification": "MODELED_ECONOMIC",
+      "source": "issue-1024-initial-analysis",
+      "sample": "Not traceable",
+      "method": "Not found in any FlipForge record. The reconciled equivalent is $117.59 of modeled losses on $951.43 of asking prices (12.36%).",
+      "limitations": ["Source calculation needed before any use"],
+      "publication": {"status": "UNRECONCILED", "blockers": ["Founder to supply the calculation and its inputs"], "approvedBy": null, "approvedOn": null}
+    },
+    {
+      "id": "independent-outcomes-measured",
+      "label": "Independently verified D7 / D14 / D30 outcomes",
+      "value": 0, "unit": "count", "display": "0",
+      "classification": "INDEPENDENTLY_VERIFIED_OUTCOME",
+      "source": "real-listing-2026-11-20-23",
+      "sample": "All saved real-listing decisions",
+      "method": "Checkpoints measured against an authorized independent source or named verifier.",
+      "limitations": ["No authorized independent outcome source is active yet (#1021, #1024)"],
+      "publication": {"status": "APPROVED", "blockers": [], "approvedBy": "standing policy: an absence of results may always be stated", "approvedOn": "2026-11-25"}
+    },
+    {
+      "id": "synthetic-acceptance",
+      "label": "Synthetic engine acceptance checks",
+      "value": 1952, "unit": "count", "display": "1,952",
+      "classification": "SYNTHETIC_VALIDATION",
+      "source": "real-listing-2026-11-20-23",
+      "sample": "32 release-candidate validation runners on invented data",
+      "method": "Software tests that the decision rules are applied consistently.",
+      "limitations": ["Software testing, not purchasing accuracy"],
+      "publication": {"status": "INTERNAL_PREVIEW", "blockers": ["Founder publication approval"], "approvedBy": null, "approvedOn": null}
+    }
+  ],
+  "caseStudies": [
+    {
+      "id": "ohtani-280-bargain",
+      "title": "The $280 bargain that wasn’t.",
+      "card": "2018 Topps Chrome Shohei Ohtani #150 PSA 10",
+      "kind": "Historical research case · modeled outcome",
+      "dates": {"evaluated": "2026-11-20", "reference": "2026-11-24"},
+      "facts": {
+        "ask": 945.00,
+        "earlierValue": 1225.00,
+        "earlierValueSales": 197,
+        "maxBuy": 925.33,
+        "verdict": "WATCH",
+        "reference": 911.00,
+        "referenceSales": 73,
+        "referenceWindow": "about the latest 45 days (provider limit of 100 sales reached)",
+        "secondReference": 923.00,
+        "secondReferenceLabel": "a second provider's qualified median, Nov 23 (15 sales)"
+      },
+      "assumptions": {"feeRate": 0.13, "fulfilmentUsd": 5.00},
+      "closing": "The price looked right. Waiting may have been the better decision.",
+      "limitations": [
+        "A historical research case with a modeled outcome. Not a realized customer loss and not an independently verified checkpoint.",
+        "The $280 'discount' was measured against FlipForge's own earlier value of $1,225, which newer evidence did not support. The case shows FlipForge's evidence being challenged, not only the listing.",
+        "FlipForge returned WATCH, not BUY. Its reconsideration price was $925.33; buying there would also model a loss ($137.76) against the $911 reference.",
+        "The $911 reference covers about the latest 45 days of one provider's sales; FlipForge's $1,225 used a 90-day window. Why the two differ is still being investigated."
+      ],
+      "sources": ["real-listing-2026-11-20-23", "hci-pilot-2026-11-24"],
+      "publication": {"status": "INTERNAL_PREVIEW", "blockers": ["Hobby Card Index written permission for the $911 reference in marketing", "Founder publication approval", "No card image without image rights (the case uses type only)"], "approvedBy": null, "approvedOn": null}
+    }
+  ],
+  "decisionFiles": [
+    {
+      "id": "df-01-280-bargain",
+      "number": "01",
+      "title": "The $280 bargain that wasn’t.",
+      "caseStudy": "ohtani-280-bargain",
+      "findings": [],
+      "summary": "A $945 listing looked $280 below FlipForge's earlier value. Newer evidence put the card near $911; after fees, buying would model a $157.43 loss.",
+      "researchDates": "Nov 20 and Nov 24, 2026",
+      "sampleSize": "1 listing; 197 earlier sales, 73 newer qualified sales",
+      "cta": "Request Beta Access"
+    },
+    {
+      "id": "df-02-176-excluded",
+      "number": "02",
+      "title": "Why 176 sale records were excluded.",
+      "findings": ["records-examined", "records-qualified", "records-held", "records-rejected", "evidence-excluded"],
+      "summary": "Of 575 sale records in the card's own grade, 399 qualified. 167 were held because their price could not be established, and 9 named a different card.",
+      "researchDates": "Nov 24, 2026",
+      "sampleSize": "575 records, 8 cards",
+      "cta": "Request Beta Access"
+    },
+    {
+      "id": "df-03-three-of-four",
+      "number": "03",
+      "title": "Why three of four apparent bargains were modeled as unprofitable.",
+      "findings": ["apparent-bargains-unprofitable", "modeled-losses-three"],
+      "summary": "Four listings were priced below FlipForge's own value. After 13% fees and $5 fulfilment, three modeled a loss at their asking price. None received BUY.",
+      "researchDates": "Nov 20, 2026 (analysis Nov 25)",
+      "sampleSize": "4 selected listings of 21 evaluations",
+      "cta": "Request Beta Access"
+    },
+    {
+      "id": "df-04-accountable",
+      "number": "04",
+      "title": "A decision you can hold accountable: Day 0, 7, 14 and 30.",
+      "findings": ["independent-outcomes-measured"],
+      "summary": "Every saved decision is frozen at Day 0 and reviewed at Days 7, 14 and 30. Outcomes count only when an authorized independent source confirms them; until then the result is pending.",
+      "researchDates": "Cohorts frozen Nov 20 and Nov 23, 2026",
+      "sampleSize": "38 saved real-listing decisions",
+      "cta": "Request Beta Access"
+    }
+  ],
+  "accountability": {
+    "horizons": [
+      {"key": "D0", "label": "Day 0", "title": "The decision", "copy": "The purchasing decision and the evidence behind it are frozen: exact card, qualified sales, supported value, Max Buy, risk and the reason.", "status": "RECORDED", "statusText": "Recorded for every saved decision"},
+      {"key": "D7", "label": "Day 7", "title": "Short-term outcome", "copy": "Later sales of the exact card are compared with the frozen decision.", "status": "PENDING", "statusText": "Validation pending", "due": "First windows open Nov 27 and Nov 30, 2026"},
+      {"key": "D14", "label": "Day 14", "title": "Decision durability", "copy": "Does the reasoning still hold two weeks on, at the same frozen price?", "status": "PENDING", "statusText": "Validation pending", "due": "Dec 4 and Dec 7, 2026"},
+      {"key": "D30", "label": "Day 30", "title": "Longer-term economics", "copy": "The longer-horizon economic outcome, measured against the original asking price and Max Buy.", "status": "PENDING", "statusText": "Validation pending", "due": "Dec 20 and Dec 23, 2026"}
+    ],
+    "rule": "An outcome counts only when an authorized independent source or a named verifier confirms it. One provider alone is shown as provider-reported. Unknown outcomes are never counted as wins or losses, and completed software testing is never shown as purchasing accuracy."
+  },
+  "comparison": {
+    "title": "More than a price. A decision.",
+    "note": "A comparison of two approaches to the same purchase, not of any specific product. Many tools offer some of these capabilities.",
+    "rows": [
+      ["Market price", "Purchasing decision"],
+      ["Comparable sales", "Qualified evidence"],
+      ["Apparent discount", "Net profitability"],
+      ["Estimated value", "Maximum purchase price"],
+      ["Historical charts", "Decision accountability"],
+      ["Information", "Card Decision Intelligence™"]
+    ]
+  },
+  "proof100": {
+    "status": "WITHDRAWN",
+    "reconciliation": "Proof100 (Sept 9-10, 2026) remains withdrawn: it was frozen on a build later found to have an evidence-classification defect, and under the current eligibility standard its checkpoints have no independently verified outcomes. None of its figures may be displayed. A new cohort frozen on the corrected build must establish any future claim."
+  }
+}
