@@ -147,10 +147,6 @@ async function diagnostics(page, text) {
   return `${text.slice(0, 2500)} || dom=${JSON.stringify(dom)} || pageerrors=${JSON.stringify(page.__ffErrors || [])} || trace=${(page.__ffTrace || []).join(" ; ")}`;
 }
 
-async function savedDecisionWording(page, pattern) {
-  await page.waitForFunction((src) => new RegExp(src).test(document.body?.innerText || ""), pattern.source, { timeout: 20000 }).catch(() => {});
-}
-
 async function fixture(route) {
   const url = new URL(route.request().url());
   const cid = route.request().headers()["x-correlation-id"] || "saved-decisions-audit";
@@ -185,8 +181,21 @@ async function fixture(route) {
 // ---------- session ----------
 const browser = await chromium.launch({ executablePath, args: ["--host-resolver-rules=MAP goflipforge.com 127.0.0.1"] });
 const PHONE = { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 };
-async function open(base, route, { device = null, wait = 4500 } = {}) {
+async function open(base, route, { device = null, wait = 4500, relabelFirst = false } = {}) {
   const context = await browser.newContext(device || { viewport: { width: 1440, height: 900 } });
+  // E3R: force the layer order that hosted runners hit intermittently. A presentation layer
+  // (beta-qa-customer-polish-v1.js / evidence-final-polish-v1.js) renames the metric labels before
+  // decision-authority-consistency-v1.js reads them. A MutationObserver callback is a microtask, so it always runs
+  // before the layers' requestAnimationFrame callbacks: this order is deterministic, not timed.
+  if (relabelFirst) await context.addInitScript(() => {
+    const rename = { "Accepted exact sales": "Current eligible exact sales", "Manual candidates": "Review candidates" };
+    new MutationObserver(() => {
+      for (const span of document.querySelectorAll(".customer-management-metrics article > span")) {
+        const to = rename[String(span.textContent || "").trim()];
+        if (to) span.textContent = to;
+      }
+    }).observe(document, { childList: true, subtree: true });
+  });
   await context.addInitScript(() => { try { localStorage.setItem("flipforge.privateBeta.onboarding.v1", "complete"); localStorage.setItem("flipforge.guidedMode.enabled", "false"); } catch (_) {} });
   await context.route(/\/assets\/js\/flipforge-identity\.js/, r => r.fulfill({ status: 200, contentType: "text/javascript",
     body: `window.FlipForgeIdentity=Object.freeze({getUser:()=>({email:"${email}"}),getSnapshot:()=>({authenticated:true,email:"${email}",fullName:"Saved Decisions Audit",membershipActive:true,membershipConfigured:true}),signOut:async()=>{},refresh:async()=>({authenticated:true,membershipActive:true,email:"${email}"}),noteServerMembership:()=>({authenticated:true,membershipActive:true}),getAccessToken:async()=>"t"});` }));
@@ -277,7 +286,6 @@ try {
     {
       const s = await open(BETA, "evidence/qa-sd-known", { device });
       await s.page.waitForSelector('[data-ff-evidence-authority-split="true"]', { timeout: 20000 }).catch(() => {}); // a cold first load can exceed the fixed wait
-      await savedDecisionWording(s.page, /Evidence behind this saved decision/);
       const text = await all(s.page);
       check(`E3 ${label} evidence page: saved BUY on 8 sales is not headed "No sales support this decision yet"`,
         /Evidence behind this saved decision/.test(text) && /8 exact completed sales supported this decision when it was made\./.test(text)
@@ -288,7 +296,6 @@ try {
       await s.context.close();
       const u = await open(BETA, "evidence/qa-sd-unknown", { device });
       await u.page.waitForSelector('[data-ff-evidence-authority-split="true"]', { timeout: 20000 }).catch(() => {}); // a cold first load can exceed the fixed wait
-      await savedDecisionWording(u.page, /did not record how many exact sales it used|No sales support this decision yet/);
       const utext = await all(u.page);
       check(`E3 ${label} evidence page: unrecorded count says so, never "No sales support"`, /did not record how many exact sales it used/.test(utext) && !/No sales support this decision yet/.test(utext), await diagnostics(u.page, utext));
       await u.context.close();
@@ -297,6 +304,18 @@ try {
       const ltext = await all(l.page);
       check(`E3 ${label} evidence page: legacy result keeps its own wording`, !/supported this decision when it was made/.test(ltext) && !PROVIDER.test(ltext));
       await l.context.close();
+      // E3R: the same saved BUY when the metric labels were renamed first (the intermittent hosted-runner order).
+      const r = await open(BETA, "evidence/qa-sd-known", { device, relabelFirst: true });
+      await r.page.waitForSelector('[data-ff-evidence-authority-split="true"]', { timeout: 20000 }).catch(() => {});
+      const rtext = await all(r.page);
+      const built = await r.page.evaluate(() => {
+        const p = document.querySelector("#main-content .customer-management-page");
+        return Boolean(p && p.dataset.ffEvidenceExperience === "v2" && p.dataset.ffEvidenceAuthoritySplit === "true");
+      });
+      check(`E3R ${label} evidence page: renamed metric labels do not stop the saved-decision view`,
+        built && /Evidence behind this saved decision/.test(rtext) && /8 exact completed sales supported this decision when it was made\./.test(rtext)
+        && !/No sales support this decision yet|No exact completed sales support this card yet/.test(rtext), await diagnostics(r.page, rtext));
+      await r.context.close();
     }
     // E7: Tracking timeline: a value of 0 cents is "Not established", never "$0.00".
     {
