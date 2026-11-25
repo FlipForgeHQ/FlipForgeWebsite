@@ -143,7 +143,8 @@
 .ff-rx-table thead th{font-weight:700}
 .ff-rx-legend{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:14px 28px;margin-top:40px!important;font-size:13px;color:var(--rx-s)}
 .ff-rx-legend .ff-rx-class{display:block;margin-bottom:4px;color:var(--rx-g)}
-.ff-rx-tip{position:fixed;z-index:50;max-width:280px;padding:8px 12px;border-radius:6px;background:var(--rx-w);color:var(--rx-k);font:600 13px/1.4 Geist,"Geist Sans",Arial,sans-serif;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+/* The tooltip is mounted on <body>, outside .ff-rx, so its colours are literal (locked palette), not variables. */
+.ff-rx-tip{position:fixed;z-index:50;max-width:280px;padding:8px 12px;border-radius:6px;background:#FFFFFF;color:#000000;font:600 13px/1.4 Geist,"Geist Sans",Arial,sans-serif;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.4)}
 
 /* Accountability timeline */
 .ff-rx-timeline{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin-top:44px!important;position:relative}

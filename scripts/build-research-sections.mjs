@@ -299,7 +299,10 @@ function economicsChart(cx) {
 function dashboard(cx) {
   const order = ['listings-evaluated', 'records-examined', 'records-qualified', 'records-held', 'records-rejected', 'evidence-excluded',
     'valuation-diagnostic', 'modeled-losses-three', 'apparent-bargains-unprofitable', 'synthetic-acceptance', 'independent-outcomes-measured'];
-  const metrics = order.filter(id => cx.can(id) && id !== 'independent-outcomes-measured').map(cx.get);
+  // Known metrics in their editorial order, then any other showable finding added to the source later (for example
+  // authorized D7/D14/D30 outcomes from #1024), so a source-only update publishes without a code change.
+  const extras = cx.data.findings.filter(f => !order.includes(f.id) && showable(f, cx.preview));
+  const metrics = [...order.filter(id => cx.can(id) && id !== 'independent-outcomes-measured').map(cx.get), ...extras];
   if (!metrics.length) return '';
   const verified = cx.get('independent-outcomes-measured');
   const rows = [...metrics, verified].map(f => `          <tr data-rx-class="${esc(f.classification)}"><th scope="row">${esc(f.label)}${cx.chip(f)}</th><td>${esc(f.display)}</td><td><span class="ff-rx-class">${esc(cx.label(f.classification))}</span></td><td>${esc(f.sample)}</td></tr>`).join('\n');

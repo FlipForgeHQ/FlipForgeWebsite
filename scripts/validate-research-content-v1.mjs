@@ -95,6 +95,16 @@ const previewAnchors = [...(render(data, {preview: true}).homeLead + render(data
 check('P14 in the preview, the same links land on sections the preview renders', previewAnchors.every(id => previewProof.includes(`id="${id}"`)), previewAnchors.join(', '));
 check('P12 the research pages carry no inline style attributes', !/<[^>]+\sstyle="/.test(home) && !/<[^>]+\sstyle="/.test(proof));
 
+const future = JSON.parse(JSON.stringify(data));
+future.findings.push({id: 'synthetic-d7-outcome-check', label: 'SYNTHETIC CHECK: D7 independently verified outcomes', value: 12, unit: 'count',
+  display: '12', classification: 'INDEPENDENTLY_VERIFIED_OUTCOME', source: data.sources[0].id, sample: 'validation fixture', method: 'fixture',
+  limitations: [], publication: {status: 'APPROVED', blockers: [], approvedBy: 'validation fixture', approvedOn: '2026-11-25'}});
+const futureProof = render(future, {preview: false}).proofResearch;
+check('P15 a newly approved outcome added only to the source is published in the research center (no code change)',
+  futureProof.includes('SYNTHETIC CHECK: D7 independently verified outcomes') && futureProof.includes('id="decision-advantage"'));
+check('P16 the chart tooltip, mounted outside the research sections, has literal opaque colours',
+  /\.ff-rx-tip\{[^}]*background:#FFFFFF;color:#000000/.test(read('assets/css/research-sections-v1.css')));
+
 // ---- H: honest labelling ---------------------------------------------------------------------------------------------
 const preview = render(data, {preview: true});
 const previewAll = preview.homeLead + preview.homeAdvantage + preview.proofResearch;
