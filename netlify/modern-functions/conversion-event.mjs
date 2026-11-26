@@ -27,6 +27,11 @@ const EVENT_NAMES = new Set([
   "app_screen_viewed",
   "hero_jump_clicked",
   "section_viewed",
+  // Research sections (assets/js/research-sections-v1.js): homepage and Decision Proof research blocks.
+  "research_viewed",
+  "decision_proof_clicked",
+  "case_study_interacted",
+  "decision_file_opened",
   // Private Beta workspace (/app/beta) use, sent only by saas-prototype/beta-session-v1.js with the fixed page
   // "beta-app" and the placement "workflow" (or a shortcut_* placement below). Counted once per browser tab.
   "home_first_use_viewed",
@@ -56,6 +61,7 @@ const PAGE_NAMES = new Set([
   "learn",
   "faq",
   "about",
+  "decision-proof",
   "legal",
   "unknown",
 ]);
@@ -88,6 +94,19 @@ const PLACEMENTS = new Set([
   "hero-challenge",
   "hero-app",
   "inside-app",
+  // Research sections.
+  "research-strip",
+  "case-study",
+  "difference",
+  "advantage",
+  "proof-dashboard",
+  "accountability",
+  "decision-files",
+  "methodology",
+  "file-01",
+  "file-02",
+  "file-03",
+  "file-04",
   // Home shortcuts (beta-session-v1.js, home_shortcut_clicked).
   "shortcut_saved",
   "shortcut_outcomes",

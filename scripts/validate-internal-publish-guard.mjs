@@ -14,7 +14,7 @@ check("publish directory is the repository root (why this guard exists)", /publi
 check("strip step is the last build step", /node scripts\/strip-internal-from-publish\.mjs$/.test(command.trim()));
 check("strip step only runs inside a Netlify build or when asked", /process\.env\.NETLIFY !== "true"/.test(strip));
 check("strip step never removes netlify/ or node_modules/", !/remove\(\s*["'](netlify|node_modules)["']/.test(strip));
-for (const dir of ["docs", "deploy-triggers", "legal"]) check(`strip step removes ${dir}/`, strip.includes(`"${dir}"`));
+for (const dir of ["docs", "deploy-triggers", "legal", "contracts"]) check(`strip step removes ${dir}/`, strip.includes(`"${dir}"`));
 check("strip step removes root markdown and deploy trigger files", /\\\.md\$/.test(strip) && /deploy\|force\|trigger/.test(strip));
 check("guard answers 404 without a redirect rule", /status:\s*404/.test(guard) && !read("_redirects").includes("/netlify/"));
 check("guard does not set preferStatic", !/preferStatic\s*:/.test(guard));
