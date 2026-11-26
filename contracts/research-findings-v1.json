@@ -1,6 +1,6 @@
 {
   "schema": "flipforge-research-findings-v1",
-  "version": "2026-11-26.1",
+  "version": "2026-11-26.2",
   "asOf": "2026-11-25",
   "servedPath": "never served: /contracts/* answers 404 (netlify/modern-functions/internal-path-guard.mjs)",
   "purpose": "The one source for every research figure on the website. scripts/build-research-sections.mjs renders the homepage and Decision Proof blocks from this file; nothing else may hard-code a research statistic.",
@@ -258,7 +258,7 @@
         "The $911 reference is as Hobby Card Index returned it on Nov 24, 2026. Hobby Card Index has since told FlipForge it is correcting how some variations are matched, including Ohtani's #150b on the base #150, so a newer pull may differ. FlipForge will re-check this case once the correction is in."
       ],
       "sources": ["real-listing-2026-11-20-23", "hci-pilot-2026-11-24"],
-      "publication": {"status": "INTERNAL_PREVIEW", "blockers": ["Hobby Card Index review of the page text (offered by Sean, Nov 26, 2026)", "Founder decision: show FlipForge's earlier $1,225 value and its 197-sale count (derived from the former listing-data provider; public display is not expressly covered by its Oct 16 permission)", "Founder publication approval", "No card image without image rights (the case uses type only)"], "approvedBy": null, "approvedOn": null}
+      "publication": {"status": "INTERNAL_PREVIEW", "blockers": ["Hobby Card Index review of the page text (offered by Sean, Nov 26, 2026)", "Founder publication approval", "No card image without image rights (the case uses type only)"], "approvedBy": null, "approvedOn": null, "decisions": ["Nov 26, 2026, founder: keep FlipForge's earlier $1,225 value and its 197-sale count on the case (FlipForge's own derived value, same rights basis as Group A; residual gap: the former provider's Oct 16 permission does not expressly cover public display)"]}
     }
   ],
   "decisionFiles": [
