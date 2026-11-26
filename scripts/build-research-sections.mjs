@@ -62,8 +62,11 @@ function context(data, preview) {
   const sourceOf = f => data.sources.find(s => s.id === f.source);
   const attribution = items => {
     const credits = new Set();
-    items.forEach(f => { const s = sourceOf(f); if (s && s.attribution) credits.add(s.attribution); });
-    return [...credits].map(c => `<p class="ff-rx-credit">${esc(c)}</p>`).join('');
+    items.forEach(f => { const s = sourceOf(f); if (s && s.attribution) credits.add(s); });
+    // The credit wording is the provider's own (HCI, Nov 26, 2026): exactly "Prices from Hobby Card Index", with a link.
+    return [...credits].map(s => s.attributionUrl
+      ? `<p class="ff-rx-credit"><a href="${esc(s.attributionUrl)}" rel="noopener" target="_blank">${esc(s.attribution)}</a></p>`
+      : `<p class="ff-rx-credit">${esc(s.attribution)}</p>`).join('');
   };
   return {data, preview, get, can, chip, label, sourceOf, cases, attribution};
 }
@@ -187,7 +190,7 @@ function caseStudy(cx) {
         <li><span>Paid at the asking price</span><b>−${money(f.ask)}</b></li>
         <li class="ff-rx-waterfall-total"><span>Modeled net result</span><b>−${money(m.loss)}</b></li>
       </ol>
-      <p>Assumes ${feePct}% selling fees and ${money(c.assumptions.fulfilmentUsd)} fulfilment. A second provider’s qualified median was ${wholeMoney(f.secondReference)} (${esc(f.secondReferenceLabel)}).</p>
+      <p>Assumes ${feePct}% selling fees and ${money(c.assumptions.fulfilmentUsd)} fulfilment.</p>
     </details>
     <p class="ff-rx-closing">${esc(c.closing)}</p>
     <ul class="ff-rx-limits" aria-label="Limitations">

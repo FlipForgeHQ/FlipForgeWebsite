@@ -158,8 +158,8 @@ check('G03 the diagnostic valuation difference is never on the homepage, public 
 // a publication of the unapproved 575; the same figure anywhere else still is.
 const leaksIn = (d, html) => {
   const restricted = [...d.findings.filter(x => !approved(x)).map(x => x.display),
-    ...d.caseStudies.filter(c => !approved(c)).flatMap(c => [c.facts.ask, c.facts.earlierValue, c.facts.reference, c.facts.secondReference, c.facts.maxBuy]
-      .map(n => Number.isInteger(n) ? '$' + n.toLocaleString('en-US') : money2(n)).concat([money2(caseMath(c).loss), money2(caseMath(c).lossAtMaxBuy), '$' + caseMath(c).discount]))]
+    ...d.caseStudies.filter(c => !approved(c)).flatMap(c => [c.facts.ask, c.facts.earlierValue, c.facts.reference, c.facts.maxBuy]
+      .filter(n => n !== undefined).map(n => Number.isInteger(n) ? '$' + n.toLocaleString('en-US') : money2(n)).concat([money2(caseMath(c).loss), money2(caseMath(c).lossAtMaxBuy), '$' + caseMath(c).discount]))]
     .filter(s => s.length >= 3 || /[%$]/.test(s));
   const ownWords = [...d.findings.filter(approved).flatMap(x => [x.label, x.sample, x.method, ...(x.limitations || [])]),
     ...d.decisionFiles.filter(approved).flatMap(x => [x.title, x.summary, x.sampleSize, x.method, ...(x.limitations || [])]),
@@ -185,6 +185,24 @@ check('G05 the leading modeled finding states its sample, assumptions and limita
     && strip0.includes('Modeled, not realized') && strip0.includes('avoided loss') && !strip0.includes('Issue #')));
 check('G06 the methodology section labels every classification on the public page', Object.keys(data.classifications).length > 0
   && methodBlock.includes('id="methodology"') && ['Measured research', 'Modeled economics', 'Synthetic validation', 'Independently verified outcome'].every(l => methodBlock.includes(l)));
+
+// ---- G07-G10: Hobby Card Index review (Sean, Nov 26, 2026) ---------------------------------------------------------
+const hci = data.sources.find(x => x.id === 'hci-pilot-2026-11-24');
+const caseApprovedOut = render(caseOnly, {preview: false});
+const caseAll = caseApprovedOut.homeLead + caseApprovedOut.proofResearch;
+const previewEverything = Object.values(render(data, {preview: true})).join(' ');
+const credit = '<a href="https://hobbycardindex.com" rel="noopener" target="_blank">Prices from Hobby Card Index</a>';
+check('G07 the provider credit is exactly "Prices from Hobby Card Index", linked to hobbycardindex.com, wherever its figures render',
+  hci.attribution === 'Prices from Hobby Card Index' && hci.attributionUrl === 'https://hobbycardindex.com'
+  && caseAll.includes(credit) && previewEverything.includes(credit));
+check('G08 no unauthorised third-provider figure ($923, "second provider", CompsAPI) appears in any rendered output, public or preview',
+  ![caseAll, previewEverything, pub].some(h => /\$923\b|second provider|CompsAPI/i.test(text(h))) && data.caseStudies.every(c => c.facts.secondReference === undefined));
+check('G09 the Ohtani case carries Hobby Card Index\'s correction notice (#150b on base #150) beside the $911 reference',
+  data.caseStudies[0].limitations.some(l => l.includes('#150b') && l.includes('Nov 24, 2026')) && text(caseAll).includes('#150b on the base #150'));
+const heldFigures = data.findings.filter(x => x.source === 'hci-pilot-2026-11-24');
+check('G10 every Hobby Card Index sale-record figure is held at the provider\'s request and is not public',
+  heldFigures.length === 6 && heldFigures.every(x => !approved(x) && x.publication.blockers.some(b => b.startsWith('Held at Hobby Card Index'))
+    && !shownFindings.includes(x.id)), heldFigures.filter(x => shownFindings.includes(x.id)).map(x => x.id).join(', '));
 
 // ---- H: honest labelling ---------------------------------------------------------------------------------------------
 const preview = render(data, {preview: true});
