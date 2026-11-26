@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import {load, render, approved, caseMath, modeledListings} from './build-research-sections.mjs';
 
 const read = p => fs.readFileSync(p, 'utf8');
+const esc = v => String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const money2 = n => '$' + Number(n).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
 const failures = [];
 let total = 0;
@@ -152,13 +153,32 @@ check('G02 methodology-only findings (software testing) render only in the metho
 check('G03 the diagnostic valuation difference is never on the homepage, public or preview', ![home, previewHome.homeLead, previewHome.homeAdvantage]
   .some(h => h.includes('valuation-diagnostic') || text(h).includes(f('valuation-diagnostic').display)));
 // No figure that is not approved appears in public text, whatever element carries it (tile, chart, table, metadata).
-const restricted = [...data.findings.filter(x => !approved(x)).map(x => x.display),
-  ...data.caseStudies.filter(c => !approved(c)).flatMap(c => [c.facts.ask, c.facts.earlierValue, c.facts.reference, c.facts.secondReference, c.facts.maxBuy]
-    .map(n => Number.isInteger(n) ? '$' + n.toLocaleString('en-US') : money2(n)).concat([money2(caseMath(c).loss), money2(caseMath(c).lossAtMaxBuy), '$' + caseMath(c).discount]))]
-  .filter(s => s.length >= 3 || /[%$]/.test(s));
-const pageText = text(home + proof) + ' ' + [...(home + proof).matchAll(/<meta[^>]+content="([^"]*)"/g)].map(m => m[1]).join(' ');
-const leaks = restricted.filter(s => new RegExp(`(^|[^\\d.,])${s.replace(/[$.*+?^()|[\]\\]/g, '\\$&')}(?![\\d])`).test(pageText));
-check('G04 no unapproved figure appears anywhere on the public pages (text, charts, tables, meta tags)', restricted.length > 5 && leaks.length === 0, leaks.join(', '));
+// Approved content is checked by identity, not by number: the approved items' own words (label, sample, method,
+// limitations, summaries) are removed first, so "Of 575 target-grade records" inside an approved finding is not read as
+// a publication of the unapproved 575; the same figure anywhere else still is.
+const leaksIn = (d, html) => {
+  const restricted = [...d.findings.filter(x => !approved(x)).map(x => x.display),
+    ...d.caseStudies.filter(c => !approved(c)).flatMap(c => [c.facts.ask, c.facts.earlierValue, c.facts.reference, c.facts.secondReference, c.facts.maxBuy]
+      .map(n => Number.isInteger(n) ? '$' + n.toLocaleString('en-US') : money2(n)).concat([money2(caseMath(c).loss), money2(caseMath(c).lossAtMaxBuy), '$' + caseMath(c).discount]))]
+    .filter(s => s.length >= 3 || /[%$]/.test(s));
+  const ownWords = [...d.findings.filter(approved).flatMap(x => [x.label, x.sample, x.method, ...(x.limitations || [])]),
+    ...d.decisionFiles.filter(approved).flatMap(x => [x.title, x.summary, x.sampleSize, x.method, ...(x.limitations || [])]),
+    ...d.caseStudies.filter(approved).flatMap(c => [c.title, c.card, ...(c.limitations || [])])].filter(Boolean).map(s => text(esc(s)).trim()).filter(Boolean)
+    .sort((a, b) => b.length - a.length);
+  let pageText = text(html) + ' ' + [...html.matchAll(/<meta[^>]+content="([^"]*)"/g)].map(m => m[1]).join(' ');
+  ownWords.forEach(w => { pageText = pageText.split(w).join(' '); });
+  return {restricted, leaks: restricted.filter(s => new RegExp(`(^|[^\\d.,])${s.replace(/[$.*+?^()|[\]\\]/g, '\\$&')}(?![\\d])`).test(pageText))};
+};
+const live = leaksIn(data, home + proof);
+const qualifiedOnly = JSON.parse(JSON.stringify(data));
+approve(qualifiedOnly.findings.find(x => x.id === 'records-qualified'));
+const qOut = render(qualifiedOnly, {preview: false});
+const qHtml = qOut.homeLead + qOut.homeAdvantage + qOut.proofResearch;
+const planted = leaksIn(data, home + proof + '<p>Evidence excluded: ' + f('evidence-excluded').display + '</p>');
+check('G04 no unapproved figure appears anywhere on the public pages (text, charts, tables, meta tags); an approved finding\'s own text is not a leak',
+  live.restricted.length > 5 && live.leaks.length === 0
+  && qHtml.includes('data-rx-finding="records-qualified"') && leaksIn(qualifiedOnly, qHtml).leaks.length === 0
+  && planted.leaks.includes(f('evidence-excluded').display), live.leaks.join(', ') + ' | ' + leaksIn(qualifiedOnly, qHtml).leaks.join(', '));
 const strip0 = render(data, {preview: false}).homeLead;
 check('G05 the leading modeled finding states its sample, assumptions and limitations beside it', !approved(f('apparent-bargains-unprofitable'))
   || (strip0.includes('class="ff-rx-lead"') && strip0.includes('How it was modeled') && strip0.includes('13% selling fees') && strip0.includes(f('apparent-bargains-unprofitable').sample)
