@@ -1,6 +1,6 @@
 {
   "schema": "flipforge-research-findings-v1",
-  "version": "2026-11-25.3",
+  "version": "2026-11-26.2",
   "asOf": "2026-11-25",
   "servedPath": "never served: /contracts/* answers 404 (netlify/modern-functions/internal-path-guard.mjs)",
   "purpose": "The one source for every research figure on the website. scripts/build-research-sections.mjs renders the homepage and Decision Proof blocks from this file; nothing else may hard-code a research statistic.",
@@ -39,8 +39,10 @@
       "provider": "Hobby Card Index",
       "providerDerived": true,
       "attribution": "Prices from Hobby Card Index",
+      "attributionUrl": "https://hobbycardindex.com",
+      "permission": "Hobby Card Index (Sean), email Nov 26, 2026: the Ohtani case study may be published on the website and social media with \"Prices from Hobby Card Index\" and a link, and may stay up as FlipForge's own research after the plan ends. Covers that case study only. The sale-record figures are to be held until HCI's API corrections (Best Offers reported at the asking price; variations matched to base cards) are in. Sean offered to review the page text before it goes up.",
       "scope": "10 liquid cards selected by FlipForge; 8 matched exactly in the provider's catalog. Up to 100 sales per grade per request, so three cards cover only about the latest 45 days.",
-      "rightsNeeded": ["Hobby Card Index written permission to display provider-derived research figures publicly and in social media", "Founder publication approval"]
+      "rightsNeeded": ["Sale-record figures: held at Hobby Card Index's request until its API corrections are in and the comparison is rerun", "Ohtani case study: Hobby Card Index review of the page text, then founder publication approval"]
     },
     {
       "id": "real-listing-2026-11-20-23",
@@ -99,7 +101,7 @@
       "sample": "8 exactly matched cards (of 10 tested); sales in the searched grade only",
       "method": "Every sale the provider returned in the card's own grade was run through FlipForge's identity, completed-sale, Best Offer, venue and duplicate rules.",
       "limitations": ["One provider", "8 cards", "Three cards hit the 100-sales limit and cover about the latest 45 days only"],
-      "publication": {"status": "INTERNAL_PREVIEW", "blockers": ["Hobby Card Index written permission for public display", "Founder publication approval"], "approvedBy": null, "approvedOn": null}
+      "publication": {"status": "INTERNAL_PREVIEW", "blockers": ["Held at Hobby Card Index's request (Nov 26, 2026): its API corrections for Best Offers reported at the asking price and for variations matched to base cards would change this figure; rerun the comparison first", "Founder publication approval"], "approvedBy": null, "approvedOn": null}
     },
     {
       "id": "records-qualified",
@@ -110,7 +112,7 @@
       "sample": "Of 575 target-grade records",
       "method": "Records that passed every FlipForge qualification rule.",
       "limitations": ["Qualification is FlipForge's rule set, not an external standard"],
-      "publication": {"status": "INTERNAL_PREVIEW", "blockers": ["Hobby Card Index written permission for public display", "Founder publication approval"], "approvedBy": null, "approvedOn": null}
+      "publication": {"status": "INTERNAL_PREVIEW", "blockers": ["Held at Hobby Card Index's request (Nov 26, 2026): its API corrections for Best Offers reported at the asking price and for variations matched to base cards would change this figure; rerun the comparison first", "Founder publication approval"], "approvedBy": null, "approvedOn": null}
     },
     {
       "id": "records-held",
@@ -128,7 +130,7 @@
         {"label": "Other held reasons", "value": 15}
       ],
       "limitations": ["Held records may be real sales; they are set aside because their price cannot be established"],
-      "publication": {"status": "INTERNAL_PREVIEW", "blockers": ["Hobby Card Index written permission for public display", "Founder publication approval"], "approvedBy": null, "approvedOn": null}
+      "publication": {"status": "INTERNAL_PREVIEW", "blockers": ["Held at Hobby Card Index's request (Nov 26, 2026): its API corrections for Best Offers reported at the asking price and for variations matched to base cards would change this figure; rerun the comparison first", "Founder publication approval"], "approvedBy": null, "approvedOn": null}
     },
     {
       "id": "records-rejected",
@@ -139,7 +141,7 @@
       "sample": "Of 575 target-grade records",
       "method": "Records that named a different card: wrong parallel or variation, wrong card number, or an identity the matcher could not establish.",
       "limitations": [],
-      "publication": {"status": "INTERNAL_PREVIEW", "blockers": ["Hobby Card Index written permission for public display", "Founder publication approval"], "approvedBy": null, "approvedOn": null}
+      "publication": {"status": "INTERNAL_PREVIEW", "blockers": ["Held at Hobby Card Index's request (Nov 26, 2026): its API corrections for Best Offers reported at the asking price and for variations matched to base cards would change this figure; rerun the comparison first", "Founder publication approval"], "approvedBy": null, "approvedOn": null}
     },
     {
       "id": "evidence-excluded",
@@ -151,7 +153,7 @@
       "sample": "176 of 575 target-grade records (167 held + 9 rejected)",
       "method": "Held plus rejected records, divided by all target-grade records.",
       "limitations": ["'Excluded' means not counted toward a value, not 'fake' or 'wrong'", "8 cards, one provider"],
-      "publication": {"status": "INTERNAL_PREVIEW", "blockers": ["Hobby Card Index written permission for public display", "Founder publication approval"], "approvedBy": null, "approvedOn": null}
+      "publication": {"status": "INTERNAL_PREVIEW", "blockers": ["Held at Hobby Card Index's request (Nov 26, 2026): its API corrections for Best Offers reported at the asking price and for variations matched to base cards would change this figure; rerun the comparison first", "Founder publication approval"], "approvedBy": null, "approvedOn": null}
     },
     {
       "id": "valuation-diagnostic",
@@ -170,7 +172,7 @@
         {"card": "2023-24 Upper Deck Young Guns Connor Bedard #451 PSA 10", "flipforge": 647.00, "reference": 625.00}
       ],
       "limitations": ["Not valuation accuracy: neither side is an independently verified later outcome", "The two estimates were taken 1-4 days apart from overlapping sales", "6 cards; the spread is wide (2.5% to 34.5%)"],
-      "publication": {"status": "INTERNAL_PREVIEW", "blockers": ["Hobby Card Index written permission for public display", "Founder publication approval", "Must never be labelled accuracy"], "approvedBy": null, "approvedOn": null}
+      "publication": {"status": "INTERNAL_PREVIEW", "blockers": ["Held at Hobby Card Index's request (Nov 26, 2026): its API corrections for Best Offers reported at the asking price and for variations matched to base cards would change this figure; rerun the comparison first", "Founder publication approval", "Must never be labelled accuracy"], "approvedBy": null, "approvedOn": null}
     },
     {
       "id": "apparent-bargains-unprofitable",
@@ -244,9 +246,7 @@
         "verdict": "WATCH",
         "reference": 911.00,
         "referenceSales": 73,
-        "referenceWindow": "about the latest 45 days (provider limit of 100 sales reached)",
-        "secondReference": 923.00,
-        "secondReferenceLabel": "a second provider's qualified median, Nov 23 (15 sales)"
+        "referenceWindow": "about the latest 45 days (provider limit of 100 sales reached)"
       },
       "assumptions": {"feeRate": 0.13, "fulfilmentUsd": 5.00},
       "closing": "The price looked right. Waiting may have been the better decision.",
@@ -254,10 +254,11 @@
         "A historical research case with a modeled outcome. Not a realized customer loss and not an independently verified checkpoint.",
         "The $280 'discount' was measured against FlipForge's own earlier value of $1,225, which newer evidence did not support. The case shows FlipForge's evidence being challenged, not only the listing.",
         "FlipForge returned WATCH, not BUY. Its reconsideration price was $925.33; buying there would also model a loss ($137.76) against the $911 reference.",
-        "The $911 reference covers about the latest 45 days of one provider's sales; FlipForge's $1,225 used a 90-day window. Why the two differ is still being investigated."
+        "The $911 reference covers about the latest 45 days of one provider's sales; FlipForge's $1,225 used a 90-day window. Why the two differ is still being investigated.",
+        "The $911 reference is as Hobby Card Index returned it on Nov 24, 2026. Hobby Card Index has since told FlipForge it is correcting how some variations are matched, including Ohtani's #150b on the base #150, so a newer pull may differ. FlipForge will re-check this case once the correction is in."
       ],
       "sources": ["real-listing-2026-11-20-23", "hci-pilot-2026-11-24"],
-      "publication": {"status": "INTERNAL_PREVIEW", "blockers": ["Hobby Card Index written permission for the $911 reference in marketing", "Founder publication approval", "No card image without image rights (the case uses type only)"], "approvedBy": null, "approvedOn": null}
+      "publication": {"status": "INTERNAL_PREVIEW", "blockers": ["Hobby Card Index review of the page text (offered by Sean, Nov 26, 2026)", "Founder publication approval", "No card image without image rights (the case uses type only)"], "approvedBy": null, "approvedOn": null, "decisions": ["Nov 26, 2026, founder: keep FlipForge's earlier $1,225 value and its 197-sale count on the case (FlipForge's own derived value, same rights basis as Group A; residual gap: the former provider's Oct 16 permission does not expressly cover public display)"]}
     }
   ],
   "decisionFiles": [
