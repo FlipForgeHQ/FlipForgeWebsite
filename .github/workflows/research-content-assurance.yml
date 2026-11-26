@@ -1,0 +1,65 @@
+name: Research Content Assurance
+
+# Research figures on the website come only from contracts/research-findings-v1.json. Public pages show only
+# APPROVED findings; everything else stays in the git-ignored internal preview. This workflow proves the pages match
+# the source, the arithmetic recomputes, unapproved figures never reach a public page, labels stay honest, analytics
+# stay allow-listed, and the sections render cleanly on desktop and phone.
+on:
+  pull_request:
+    paths:
+      - "contracts/research-findings-v1.json"
+      - "scripts/build-research-sections.mjs"
+      - "scripts/validate-research-content-v1.mjs"
+      - "scripts/audit-research-sections-ci.mjs"
+      - "assets/css/research-sections-v1.css"
+      - "assets/js/research-sections-v1.js"
+      - "assets/js/conversion-events.js"
+      - "netlify/modern-functions/conversion-event.mjs"
+      - "netlify/modern-functions/lib/beta-operations-core.mjs"
+      - "index.html"
+      - "decision-proof.html"
+      - ".github/workflows/research-content-assurance.yml"
+  push:
+    branches: [main]
+    paths:
+      - "contracts/research-findings-v1.json"
+      - "scripts/build-research-sections.mjs"
+      - "index.html"
+      - "decision-proof.html"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  research:
+    name: Research content governance and rendering
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - name: Install website dependencies
+        run: npm install --no-audit --no-fund
+      - name: Public pages match the research source (no hand-edited figures)
+        run: node scripts/build-research-sections.mjs --check
+      - name: Research governance (arithmetic, publication gating, provider rights, honest labels, analytics)
+        run: node scripts/validate-research-content-v1.mjs
+      - name: Existing homepage and Decision Proof contracts still hold
+        run: |
+          node scripts/validate-homepage-progression.mjs
+          node scripts/validate-decision-proof-public-v1.mjs
+          node scripts/validate-homepage-focus.mjs
+          node scripts/validate-homepage-challenge-v1.mjs
+          node scripts/validate-conversion-event-contract.mjs
+          node scripts/validate-internal-publish-guard.mjs
+      - name: Install Playwright Chromium
+        run: bash scripts/ci/install-playwright-chromium.sh
+      - name: Build the internal preview (runner only; never published)
+        run: node scripts/build-research-sections.mjs --preview
+      - name: Rendered audit, public and preview, desktop and phone
+        run: node scripts/audit-research-sections-ci.mjs

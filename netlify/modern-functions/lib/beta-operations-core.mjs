@@ -439,6 +439,18 @@ export function funnelSummary(events, applications, now = new Date()) {
       audienceSelected: counts.audience_selected || 0,
       betaCtaClicked: counts.beta_cta_clicked || 0,
     },
+    // Research sections: are the research strip, the featured Decision File and the research center reached and used,
+    // and do they lead to Decision Proof? Directional counts, not unique visitors.
+    research: {
+      stripReached: byPlacement["research_viewed:research-strip"] || 0,
+      caseStudyReached: byPlacement["research_viewed:case-study"] || 0,
+      caseStudyMathOpened: counts.case_study_interacted || 0,
+      differenceReached: byPlacement["research_viewed:difference"] || 0,
+      researchCenterReached: (byPlacement["research_viewed:advantage"] || 0) + (byPlacement["research_viewed:proof-dashboard"] || 0),
+      accountabilityReached: byPlacement["research_viewed:accountability"] || 0,
+      decisionProofClicks: counts.decision_proof_clicked || 0,
+      decisionFileCtaClicks: counts.decision_file_opened || 0,
+    },
     countingBoundary: "DIRECTIONAL_INTERACTIONS_NOT_UNIQUE_VISITORS",
   };
 }
