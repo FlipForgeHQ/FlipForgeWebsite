@@ -159,6 +159,42 @@ export function caseMath(c) {
   };
 }
 
+/**
+ * The case as one price line: what the listing looked like against FlipForge's earlier value, what the newer
+ * benchmark said, and what a resale would net after costs, each against the same asking price. Plain HTML bars on
+ * one axis (no second scale); every figure is printed as text, so nothing depends on colour or on the bar alone.
+ */
+function priceStory(c, m) {
+  const f = c.facts;
+  const net = m.net;
+  const max = Math.ceil(Math.max(f.earlierValue, f.ask) * 1.06 / 50) * 50;
+  const x = v => (v / max * 1000).toFixed(1);
+  const feePct = Math.round(c.assumptions.feeRate * 100);
+  const row = (key, title, sub, value, valueText, note) => {
+    // SVG geometry, not inline styles: the homepage CSP is style-src 'self'.
+    const over = value > f.ask;
+    const seg = over
+      ? `<rect class="ff-rx-pl-over" x="${x(f.ask)}" y="6" width="${x(value - f.ask)}" height="16"/>`
+      : `<rect class="ff-rx-pl-short" x="${x(value)}" y="6" width="${x(f.ask - value)}" height="16" vector-effect="non-scaling-stroke"/>`;
+    return `        <li class="ff-rx-pl-row ff-rx-pl-${key}">
+          <div class="ff-rx-pl-label"><span><b>${esc(title)}</b><small>${esc(sub)}</small></span><strong>${valueText}</strong></div>
+          <svg class="ff-rx-pl-track" viewBox="0 0 1000 28" preserveAspectRatio="none" aria-hidden="true" focusable="false"><rect class="ff-rx-pl-bg" x="0" y="6" width="1000" height="16"/><rect class="ff-rx-pl-bar" x="0" y="6" width="${x(Math.min(value, f.ask))}" height="16"/>${seg}<line class="ff-rx-pl-ask" x1="${x(f.ask)}" x2="${x(f.ask)}" y1="0" y2="28" vector-effect="non-scaling-stroke"/></svg>
+          ${note ? `<p class="ff-rx-pl-note">${note}</p>` : ''}
+        </li>`;
+  };
+  return `<figure class="ff-rx-pl" aria-labelledby="ff-rx-pl-title">
+      <figcaption class="ff-rx-pl-head">
+        <h3 id="ff-rx-pl-title" class="ff-rx-pl-title">How the bargain disappeared</h3>
+        <p class="ff-rx-pl-key"><span class="ff-rx-pl-key-ask" aria-hidden="true"></span>Asking price ${wholeMoney(f.ask)}</p>
+      </figcaption>
+      <ol class="ff-rx-pl-rows">
+${row('looked', 'What it looked like', 'Earlier FlipForge value', f.earlierValue, wholeMoney(f.earlierValue), `${wholeMoney(m.discount)} above the asking price: the apparent discount`)}
+${row('evidence', 'What newer evidence said', `Newer benchmark, ${f.referenceSales} qualified sales`, f.reference, wholeMoney(f.reference), 'Below the asking price')}
+${row('net', 'What a resale would net', `After ${feePct}% selling fees and ${money(c.assumptions.fulfilmentUsd)} fulfilment`, net, money(net), `−${money(m.loss)} against the ${wholeMoney(f.ask)} paid`)}
+      </ol>
+    </figure>`;
+}
+
 function caseStudy(cx) {
   const c = cx.data.caseStudies[0];
   if (!showable(c, cx.preview)) return '';
@@ -167,10 +203,12 @@ function caseStudy(cx) {
   const feePct = Math.round(c.assumptions.feeRate * 100);
   return `<section class="ff-rx ff-rx-case ff10-light" id="decision-file-01" aria-labelledby="ff-rx-case-title" data-rx-section="case-study" data-rx-case="${esc(c.id)}">
   <div class="ff10-wrap">
-    <div class="ff-rx-case-head">
-      <p class="ff-rx-eyebrow">FlipForge Decision File 01 · ${esc(c.kind)}${cx.chip(c)}</p>
-      <h2 id="ff-rx-case-title" class="ff-rx-title">${esc(c.title)}</h2>
-      <p class="ff-rx-case-card">${esc(c.card)}</p>
+    <div class="ff-rx-case-hero">
+      <div class="ff-rx-case-head">
+        <p class="ff-rx-eyebrow">FlipForge Decision File 01 · ${esc(c.kind)}${cx.chip(c)}</p>
+        <h2 id="ff-rx-case-title" class="ff-rx-title">${esc(c.title)}</h2>
+        <p class="ff-rx-case-card">${esc(c.card)}</p>
+      </div>
     </div>
     <ol class="ff-rx-ledger">
       <li><span>Asking price</span><strong>${wholeMoney(f.ask)}</strong><small>Live listing, ${esc(c.dates.evaluated)}</small></li>
@@ -180,6 +218,7 @@ function caseStudy(cx) {
       <li><span>Newer benchmark</span><strong>${wholeMoney(f.reference)}</strong><small>${f.referenceSales} qualified sales, ${esc(c.dates.reference)}</small></li>
       <li class="ff-rx-ledger-out"><span>Modeled outcome at ${wholeMoney(f.ask)}</span><strong>−${money(m.loss)}</strong><small>Modeled net loss</small></li>
     </ol>
+    ${priceStory(c, m)}
     <details class="ff-rx-math" data-rx-case-math>
       <summary>See the modeled calculation</summary>
       <ol class="ff-rx-waterfall">
@@ -193,9 +232,12 @@ function caseStudy(cx) {
       <p>Assumes ${feePct}% selling fees and ${money(c.assumptions.fulfilmentUsd)} fulfilment.</p>
     </details>
     <p class="ff-rx-closing">${esc(c.closing)}</p>
-    <ul class="ff-rx-limits" aria-label="Limitations">
-${c.limitations.map(l => `      <li>${esc(l)}</li>`).join('\n')}
-    </ul>
+    <div class="ff-rx-case-limits">
+      <h3 class="ff-rx-case-limits-title">What this case shows, and what it doesn’t</h3>
+      <ul class="ff-rx-limits" aria-label="Limitations">
+${c.limitations.map(l => `        <li>${esc(l)}</li>`).join('\n')}
+      </ul>
+    </div>
     ${cx.attribution([{source: 'hci-pilot-2026-11-24'}])}
     <div class="ff10-actions ff-rx-actions">
       <a class="ff10-btn ff10-btn-black" href="beta-application.html">Request Beta Access</a>

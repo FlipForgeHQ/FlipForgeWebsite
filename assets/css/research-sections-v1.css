@@ -246,3 +246,63 @@
   .ff-rx-charts .ff-rx-chart{margin-top:0}
   .ff-rx-step p{font-size:14px}
 }
+
+/* ---- Decision File 01 case study, presentation (Nov 26, 2026) ------------------------------------------------------
+   Black hero panel inside the light section, one-axis price story, pull-quote close and a limitations card.
+   Brand tokens only: black, white, silver, champagne gold. */
+.ff-rx-case-hero{position:relative;overflow:hidden;background:var(--rx-k);color:var(--rx-w);border-radius:14px 14px 0 0;
+  padding:clamp(28px,4.4vw,64px) clamp(22px,4.4vw,64px);
+  background-image:radial-gradient(120% 140% at 100% 0%,rgba(212,175,55,.20) 0%,rgba(212,175,55,0) 55%)}
+.ff-rx-case-hero::after{content:"";position:absolute;left:clamp(22px,4.4vw,64px);right:clamp(22px,4.4vw,64px);bottom:0;height:3px;
+  background:linear-gradient(90deg,var(--rx-g),rgba(212,175,55,0))}
+.ff-rx.ff10-light .ff-rx-case-hero .ff-rx-eyebrow{color:var(--rx-g)}
+.ff-rx-case-hero .ff-rx-title{color:var(--rx-w)}
+.ff-rx.ff10-light .ff-rx-case-hero .ff-rx-chip{border-color:var(--rx-g);color:var(--rx-g)}
+.ff-rx.ff10-light .ff-rx-case-hero :focus-visible{outline-color:var(--rx-g)}
+.ff-rx-case-hero .ff-rx-case-card{color:rgba(255,255,255,.78);font-size:16px}
+.ff-rx-case-hero + .ff-rx-ledger{border-top:0;margin-top:0!important}
+.ff-rx-case .ff-rx-ledger li{padding-top:26px;padding-bottom:26px}
+
+.ff-rx-pl{margin:clamp(36px,4.5vw,56px) 0 0!important;padding:clamp(22px,3vw,36px);border:1px solid var(--rx-line-l);border-radius:14px;background:#FAFAF8}
+.ff-rx-pl-head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:10px 24px;margin-bottom:8px}
+.ff-rx-pl-title{font-size:clamp(20px,1.9vw,26px);font-weight:700;letter-spacing:-.02em;margin:0}
+.ff-rx-pl-key{display:inline-flex;align-items:center;gap:10px;font-size:14px;font-weight:600;color:var(--rx-k);font-variant-numeric:tabular-nums}
+.ff-rx-pl-key-ask{display:inline-block;width:0;height:18px;border-left:2px solid var(--rx-k)}
+.ff-rx-pl-rows{display:grid;gap:22px;margin-top:18px!important}
+.ff-rx-pl-label{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:8px}
+.ff-rx-pl-label span{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}
+.ff-rx-pl-label b{font-size:15px;font-weight:700}
+.ff-rx-pl-label small{font-size:14px;color:var(--rx-s-ink)}
+.ff-rx-pl-label strong{font-size:clamp(22px,2.2vw,30px);font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums;white-space:nowrap}
+.ff-rx-pl-track{display:block;width:100%;height:28px;overflow:visible}
+.ff-rx-pl-bg{fill:rgba(0,0,0,.06)}
+.ff-rx-pl-bar{fill:var(--rx-k)}
+.ff-rx-pl-looked .ff-rx-pl-bar{fill:var(--rx-s)}
+.ff-rx-pl-over{fill:var(--rx-g)}
+.ff-rx-pl-short{fill:rgba(184,134,11,.10);stroke:var(--rx-dg);stroke-width:1.5;stroke-dasharray:5 4}
+.ff-rx-pl-ask{stroke:var(--rx-k);stroke-width:2}
+.ff-rx-pl-note{margin-top:8px!important;font-size:14px;color:var(--rx-s-ink);font-variant-numeric:tabular-nums}
+.ff-rx-pl-looked .ff-rx-pl-note{color:var(--rx-k);font-weight:600}
+.ff-rx-pl-net .ff-rx-pl-label strong{color:var(--rx-k)}
+.ff-rx-pl-net .ff-rx-pl-note{color:var(--rx-k);font-weight:700}
+
+.ff-rx-case .ff-rx-math{background:var(--rx-w)}
+.ff-rx-case .ff-rx-closing{position:relative;padding-left:clamp(18px,2vw,28px);border-left:4px solid var(--rx-g)}
+.ff-rx-case-limits{margin-top:clamp(28px,3vw,40px);padding:clamp(20px,2.6vw,32px);border-radius:14px;background:#F4F3EF}
+.ff-rx-case-limits-title{font-size:13px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--rx-k);margin:0 0 4px}
+.ff-rx-case-limits .ff-rx-limits{margin-top:12px!important;gap:10px}
+.ff-rx-case-limits .ff-rx-limits li{font-size:14px;line-height:1.55;color:#3D4047}
+.ff-rx-case .ff-rx-credit{margin-top:18px!important;font-size:14px}
+@media(max-width:680px){
+  .ff-rx-case-hero{border-radius:10px 10px 0 0}
+  .ff-rx-pl{border-radius:10px;padding:18px 16px}
+  .ff-rx-pl-label{align-items:flex-start}
+  .ff-rx-pl-label strong{font-size:22px}
+  .ff-rx-case-limits{border-radius:10px}
+}
+@media(forced-colors:active){
+  .ff-rx-pl-bar,.ff-rx-pl-over{fill:CanvasText}
+  .ff-rx-pl-bg{fill:Canvas;stroke:CanvasText}
+  .ff-rx-pl-short{fill:Canvas;stroke:CanvasText}
+  .ff-rx-pl-ask{stroke:Highlight}
+}
