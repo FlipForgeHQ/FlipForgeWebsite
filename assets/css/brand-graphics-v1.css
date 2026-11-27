@@ -1,0 +1,35 @@
+/* Founder-approved brand graphics (Nov 27, 2026): the seven-layer CDI framework (homepage), the CDI process
+   (Decision Intelligence) and the "A better way to decide" poster (homepage close). The artwork is used exactly as
+   supplied; only responsive crops and sizing happen here. One owner for these figures; no overrides elsewhere. */
+.ff-gfx{margin:0}
+.ff-gfx img{display:block;width:100%;height:auto;border-radius:16px;background:#000;box-shadow:0 28px 70px rgba(0,0,0,.28)}
+.ff-gfx figcaption{margin-top:14px;font-size:15px;line-height:1.5;color:rgba(255,255,255,.72);max-width:60em}
+.ff-gfx-sr{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
+/* Homepage: "More than a price. A decision." */
+.ff-rx-diff-grid .ff-gfx-framework{grid-column:1 / -1;margin-top:clamp(20px,3vw,40px)}
+
+/* Decision Intelligence: the process band, at the foot of the first section */
+.ff-gfx-wrap{width:min(1240px,calc(100% - 32px));margin:0 auto}
+.ff-gfx-in-hero{margin-top:clamp(40px,6vw,88px)}
+.ff-gfx-zoom{display:block;border-radius:16px;outline-offset:4px}
+.ff-gfx-zoom:focus-visible{outline:2px solid #D4AF37}
+.ff-gfx-tap{display:none}
+
+@media (max-width:680px){
+  .ff-gfx img,.ff-gfx-zoom{border-radius:10px}
+  .ff-gfx-tap{display:inline}
+}
+@media (prefers-reduced-motion:no-preference){
+  .ff-gfx-zoom img{transition:transform .25s ease}
+  .ff-gfx-zoom:hover img{transform:translateY(-2px)}
+}
+
+/* Homepage close: the poster beside the final call to action (above it on narrow screens) */
+.ff10-final-lead{display:grid;grid-template-columns:minmax(0,1fr) minmax(260px,400px);gap:clamp(32px,5vw,80px);align-items:center}
+.ff10-final-lead .ff10-display{font-size:clamp(44px,6.4vw,112px);max-width:9em}
+.ff-gfx-poster img{border-radius:14px;box-shadow:0 30px 80px rgba(0,0,0,.55),0 0 0 1px rgba(212,175,55,.25)}
+@media (max-width:860px){
+  .ff10-final-lead{grid-template-columns:1fr}
+  .ff-gfx-poster{order:-1;width:min(100%,440px);margin:0 auto}
+}

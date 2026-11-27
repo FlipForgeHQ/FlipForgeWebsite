@@ -239,7 +239,15 @@ check('H06 Proof100 stays withdrawn and its figures stay off the pages', data.pr
   && !/17\/17|42 measurable|58 unresolved|100 frozen decisions/.test(home + proof));
 check('H07 the comparison disclaims judging specific products', data.comparison.note.includes('not of any specific product'));
 check('H08 every Decision File states dates, sample and a beta call to action', data.decisionFiles.every(d => d.researchDates && d.sampleSize && d.cta === 'Request Beta Access'));
-check('H09 no fabricated app screen: research blocks embed no images', !/<img\b/.test(previewAll));
+// Founder approval Nov 27, 2026: the seven-layer CDI framework brand graphic sits in "More than a price" (the one
+// documented exception). Every other image, and any app screen, is still refused in research blocks.
+const APPROVED_RESEARCH_GRAPHIC = /<img\b[^>]*\bsrc="assets\/images\/ff-cdi-framework-7-layer-v1-836\.webp"[^>]*>/g;
+check('H09 no fabricated app screen: research blocks embed no images except the approved CDI framework graphic',
+  !/<img\b/.test(previewAll.replace(APPROVED_RESEARCH_GRAPHIC, '')));
+check('H11 the approved framework graphic appears once, only in "More than a price", with its phone crop and a full alt text',
+  (previewAll.match(APPROVED_RESEARCH_GRAPHIC) || []).length === 1
+  && /id="beyond-price"[\s\S]*ff-gfx-framework[\s\S]*ff-cdi-framework-7-layer-m-v1\.webp[\s\S]*alt="The seven-layer Card Decision Intelligence framework\.[^"]{200,}"[\s\S]*<\/section>/.test(previewAll)
+  && !/\bproven\b/i.test((previewAll.match(/alt="The seven-layer[^"]*"/) || [''])[0]));
 
 // ---- E: analytics ----------------------------------------------------------------------------------------------------
 const client = read('assets/js/conversion-events.js');
