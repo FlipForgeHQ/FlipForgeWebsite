@@ -1,4 +1,9 @@
 (() => {
+  // Visitors who ask for reduced motion jump straight to the section (WCAG 2.3.3). Before Nov 27, 2026 the explicit
+  // 'smooth' below ignored that setting, since prefers-reduced-motion CSS does not apply to scrollTo({behavior}).
+  const reduceMotion = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : { matches: false };
+  const motion = () => (reduceMotion.matches ? 'auto' : 'smooth');
+
   const headerOffset = () => {
     const header = document.querySelector('.site-header');
     return header ? Math.ceil(header.getBoundingClientRect().height) + 18 : 18;
@@ -35,11 +40,11 @@
 
     event.preventDefault();
     history.pushState(null, '', hash);
-    requestAnimationFrame(() => alignToHash(hash, 'smooth'));
+    requestAnimationFrame(() => alignToHash(hash, motion()));
   });
 
   window.addEventListener('hashchange', () => {
-    requestAnimationFrame(() => alignToHash(window.location.hash, 'smooth'));
+    requestAnimationFrame(() => alignToHash(window.location.hash, motion()));
   });
 
   const realignInitialHash = () => {
