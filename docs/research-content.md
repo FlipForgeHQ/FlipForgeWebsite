@@ -9,7 +9,7 @@ file is never served: `/contracts/*` answers 404.
 |---|---|
 | `contracts/research-findings-v1.json` | The source. Each finding has its value, classification, source, sample, method, limitations and publication status. |
 | `scripts/build-research-sections.mjs` | Renders the homepage and Decision Proof blocks from the source. It has a `--check` mode (used in CI and the Netlify build) and a `--preview` mode. |
-| `scripts/validate-research-content-v1.mjs` | Checks governance, with 60 checks covering: arithmetic, publication gating, provider rights, aggregate-only and methodology-only placement, honest labels, and analytics allow-lists. |
+| `scripts/validate-research-content-v1.mjs` | Checks governance, with 61 checks covering: arithmetic, publication gating, provider rights, aggregate-only and methodology-only placement, honest labels, analytics allow-lists, and the one approved brand graphic in a research block (H09, H11). |
 | `scripts/audit-research-sections-ci.mjs` | Rendered audit of public and preview pages, desktop and phone. |
 | `assets/css/research-sections-v1.css`, `assets/js/research-sections-v1.js` | Presentation, counters, chart tooltips and engagement counts. |
 
