@@ -242,12 +242,18 @@ check('H08 every Decision File states dates, sample and a beta call to action', 
 // Founder approval Nov 27, 2026: the seven-layer CDI framework brand graphic sits in "More than a price" (the one
 // documented exception). Every other image, and any app screen, is still refused in research blocks.
 const APPROVED_RESEARCH_GRAPHIC = /<img\b[^>]*\bsrc="assets\/images\/ff-cdi-framework-7-layer-v1-836\.webp"[^>]*>/g;
-check('H09 no fabricated app screen: research blocks embed no images except the approved CDI framework graphic',
-  !/<img\b/.test(previewAll.replace(APPROVED_RESEARCH_GRAPHIC, '')));
+// Founder request Nov 27, 2026: the approved poster moves up from the homepage close into "More than a price".
+const APPROVED_RESEARCH_POSTER = /<img\b[^>]*\bsrc="assets\/images\/ff-better-way-to-decide-v1-561\.webp"[^>]*>/g;
+check('H09 no fabricated app screen: research blocks embed no images except the two approved brand graphics',
+  !/<img\b/.test(previewAll.replace(APPROVED_RESEARCH_GRAPHIC, '').replace(APPROVED_RESEARCH_POSTER, '')));
 check('H11 the approved framework graphic appears once, only in "More than a price", with its phone crop and a full alt text',
   (previewAll.match(APPROVED_RESEARCH_GRAPHIC) || []).length === 1
   && /id="beyond-price"[\s\S]*ff-gfx-framework[\s\S]*ff-cdi-framework-7-layer-m-v1\.webp[\s\S]*alt="The seven-layer Card Decision Intelligence framework\.[^"]{200,}"[\s\S]*<\/section>/.test(previewAll)
   && !/\bproven\b/i.test((previewAll.match(/alt="The seven-layer[^"]*"/) || [''])[0]));
+check('H12 the approved poster appears once, in "More than a price" beside the comparison, with a full alt text',
+  (previewAll.match(APPROVED_RESEARCH_POSTER) || []).length === 1
+  && /id="beyond-price"[\s\S]*ff-rx-sub[\s\S]*ff-gfx-poster[\s\S]*ff-rx-compare/.test(previewAll)
+  && /alt="A collector in white cotton gloves[^"]{80,}"/.test(previewAll));
 
 // ---- E: analytics ----------------------------------------------------------------------------------------------------
 const client = read('assets/js/conversion-events.js');
