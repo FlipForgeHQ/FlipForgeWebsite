@@ -211,6 +211,7 @@ function difference(cx) {
       <p class="ff-rx-eyebrow">The difference</p>
       <h2 id="ff-rx-diff-title" class="ff-rx-title">${esc(d.title)}</h2>
       <p class="ff-rx-sub">Anyone can show you a price. FlipForge shows you whether the evidence justifies the purchase.</p>
+      ${posterGraphic()}
     </div>
     <table class="ff-rx-compare">
       <caption class="ff10-sr">Price-based analysis compared with the FlipForge approach</caption>
@@ -229,6 +230,14 @@ ${rows}
  * The founder-approved seven-layer framework graphic (Nov 27, 2026), used exactly as supplied. Phones get a crop of
  * the centre column (the seven layers), which stays readable at 390 px; wider screens get the full graphic.
  */
+/** The founder-approved "A better way to decide" poster (Nov 27, 2026), used exactly as supplied; moved up from the
+ * homepage close at the founder's request so it sits beside the comparison. */
+function posterGraphic() {
+  return `<figure class="ff-gfx ff-gfx-poster">
+        <img src="assets/images/ff-better-way-to-decide-v1-561.webp" srcset="assets/images/ff-better-way-to-decide-v1-561.webp 561w, assets/images/ff-better-way-to-decide-v1.webp 1122w" sizes="(max-width: 860px) min(88vw, 440px), 420px" width="1122" height="1402" loading="lazy" decoding="async" alt="A collector in white cotton gloves studies a graded baseball card under a desk lamp. FlipForge, Card Decision Intelligence: Finally. A better way to decide. Not another price. A decision backed by evidence. Before you buy. Know Why.">
+      </figure>`;
+}
+
 function frameworkGraphic() {
   return `<figure class="ff-gfx ff-gfx-framework">
       <picture>
