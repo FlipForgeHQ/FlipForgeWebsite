@@ -220,8 +220,22 @@ ${rows}
       </tbody>
     </table>
     <p class="ff-rx-note">${esc(d.note)}</p>
+    ${frameworkGraphic()}
   </div>
 </section>`;
+}
+
+/**
+ * The founder-approved seven-layer framework graphic (Nov 27, 2026), used exactly as supplied. Phones get a crop of
+ * the centre column (the seven layers), which stays readable at 390 px; wider screens get the full graphic.
+ */
+function frameworkGraphic() {
+  return `<figure class="ff-gfx ff-gfx-framework">
+      <picture>
+        <source media="(max-width: 680px)" srcset="assets/images/ff-cdi-framework-7-layer-m-v1.webp" width="665" height="826">
+        <img src="assets/images/ff-cdi-framework-7-layer-v1-836.webp" srcset="assets/images/ff-cdi-framework-7-layer-v1-836.webp 836w, assets/images/ff-cdi-framework-7-layer-v1.webp 1672w" sizes="(max-width: 1240px) 92vw, 1180px" width="1672" height="941" loading="lazy" decoding="async" alt="The seven-layer Card Decision Intelligence framework. Identity: confirm the exact card and details. Evidence: use qualified, verifiable sales. Economic: calculate supported value and Max Buy. Risk and uncertainty: assess liquidity, reliability and key risks. Decision: a clear verdict of BUY, WATCH, VERIFY or PASS. Decision Receipt: a saved record of the evidence and reasoning. Outcome Intelligence: track results over time to learn and improve. Alongside: find real deals, avoid expensive mistakes, explainable decisions, get better over time.">
+      </picture>
+    </figure>`;
 }
 
 // The verified-outcome sentence comes from the source, so it can never contradict Decision Proof.
