@@ -24,3 +24,12 @@
   .ff-gfx-zoom img{transition:transform .25s ease}
   .ff-gfx-zoom:hover img{transform:translateY(-2px)}
 }
+
+/* Homepage close: the poster beside the final call to action (above it on narrow screens) */
+.ff10-final-lead{display:grid;grid-template-columns:minmax(0,1fr) minmax(260px,400px);gap:clamp(32px,5vw,80px);align-items:center}
+.ff10-final-lead .ff10-display{font-size:clamp(44px,6.4vw,112px);max-width:9em}
+.ff-gfx-poster img{border-radius:14px;box-shadow:0 30px 80px rgba(0,0,0,.55),0 0 0 1px rgba(212,175,55,.25)}
+@media (max-width:860px){
+  .ff10-final-lead{grid-template-columns:1fr}
+  .ff-gfx-poster{order:-1;width:min(100%,440px);margin:0 auto}
+}
